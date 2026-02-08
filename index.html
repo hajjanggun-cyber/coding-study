@@ -171,7 +171,6 @@
             <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
             <div>
                 <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
-                <button class="sort-btn" id="btn-oldest" onclick="loadData('oldest')">번호순</button>
                 <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
             </div>
         </div>
@@ -234,10 +233,10 @@
             // 정렬 버튼 활성화 표시
             document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
             if (sortType === 'newest') document.getElementById('btn-newest').classList.add('active');
-            if (sortType === 'oldest') document.getElementById('btn-oldest').classList.add('active');
             if (sortType === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
 
-            fetch(API_URL + '?action=load&sort=' + sortType)
+            // 서버에는 항상 'load' 요청만 보내고 정렬은 클라이언트에서 처리
+            fetch(API_URL + '?action=load')
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('list-container');
@@ -246,6 +245,14 @@
                     if (!data || data.length === 0) {
                         container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">등록된 데이터가 없습니다.</p>';
                         return;
+                    }
+
+                    // 클라이언트 측 정렬 로직 (반응 속도 향상 및 로직 통일)
+                    if (currentSort === 'newest') {
+                        data.sort((a, b) => b.id - a.id);
+                    } else if (currentSort === 'alphabet') {
+                        // 가나다순 (오름차순) 정렬
+                        data.sort((a, b) => String(a.term).localeCompare(String(b.term), 'ko'));
                     }
 
                     data.forEach(item => {
