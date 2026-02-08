@@ -160,6 +160,57 @@
             white-space: pre-wrap;
             line-height: 1.5;
         }
+
+        /* 텍스트 래퍼 (PC 기본) */
+        .card-content {
+            display: flex;
+            flex: 1;
+            align-items: flex-start;
+        }
+
+        /* 모바일 반응형 스타일 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            /* 입력 폼 수직 배치 */
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .label {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+
+            /* 리스트 카드 수직 배치 */
+            .card-content {
+                display: block;
+            }
+
+            .card-term {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 6px;
+                border-bottom: 1px dashed #eee;
+                padding-bottom: 4px;
+            }
+
+            .card-desc {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -274,8 +325,10 @@
                         const card = document.createElement('div');
                         card.className = 'card';
                         card.innerHTML = `<input type="checkbox" class="chk-box" data-id="${item.id}">
-                            <div class="card-term">${item.term}</div>
-                            <div class="card-desc">${item.description}</div>`;
+                            <div class="card-content">
+                                <div class="card-term">${item.term}</div>
+                                <div class="card-desc">${item.description}</div>
+                            </div>`;
                         container.appendChild(card);
                     });
                 })
