@@ -259,11 +259,9 @@
                     data.forEach(item => {
                         const card = document.createElement('div');
                         card.className = 'card';
-                        card.innerHTML = `
-                            <input type="checkbox" class="chk-box" data-id="${item.id}">
+                        card.innerHTML = `<input type="checkbox" class="chk-box" data-id="${item.id}">
                             <div class="card-term">${item.term}</div>
-                            <div class="card-desc">${item.description}</div>
-                        `;
+                            <div class="card-desc">${item.description}</div>`;
                         container.appendChild(card);
                     });
                 })
