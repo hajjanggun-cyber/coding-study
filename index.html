@@ -5,44 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>코딩 용어 정리</title>
     <style>
-        /* 시스템 기본 고딕체 사용 (오류 방지) */
+        /* 관공서 스타일: 깨끗한 흰색 배경과 신뢰감 있는 남색 포인트 */
         body { 
             background: #f4f7f9; 
             color: #333; 
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
+            font-family: 'Malgun Gothic', 'dotum', sans-serif; 
             padding: 40px 20px; 
             margin: 0; 
             line-height: 1.6;
             font-size: 16px;
         }
         .container { 
-            max-width: 800px; 
+            max-width: 900px; 
             margin: 0 auto; 
             background: #ffffff; 
-            padding: 30px; 
+            padding: 40px; 
             border-top: 6px solid #003366; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
-        
-        /* 제목만 크게 유지 */
         h2 { 
             text-align: center; 
             color: #003366; 
-            margin-bottom: 30px; 
+            margin-bottom: 40px; 
             font-size: 32px;
             font-weight: bold;
         }
         
         /* 입력 영역 */
-        .input-box { border: 1px solid #d1d1d1; padding: 20px; margin-bottom: 25px; background: #fff; }
-        .input-row { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .label { width: 100px; font-weight: bold; color: #555; font-size: 15px; }
+        .input-box { border: 1px solid #d1d1d1; padding: 20px; margin-bottom: 30px; background: #fff; }
+        .input-row { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .label { width: 120px; font-weight: bold; color: #555; font-size: 15px; }
         input, textarea { 
             flex: 1; padding: 10px; border: 1px solid #ccc; background: #fafafa; font-size: 14px; 
         }
         .save-btn { 
             background: #003366; color: white; padding: 12px 0; border: none; 
-            font-weight: bold; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px;
+            font-weight: bold; cursor: pointer; font-size: 16px; width: 100%;
         }
 
         /* 컨트롤 및 정렬 */
@@ -84,9 +82,10 @@
             </div>
         </div>
 
-        <div id="list-container"></div>
+        <div id="list-container">
+            </div>
     </div>
 
     <script>
-        // 하소장님의 실제 구글 웹 앱 URL
-        const API_URL = "https://
+        // 하소장님이 발급받으신 최신 v3 웹 앱 URL 적용
+        const API_URL = "
