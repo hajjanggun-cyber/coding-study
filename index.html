@@ -131,20 +131,22 @@
             cursor: pointer;
         }
 
-        .card h3 {
-            margin: 0 0 4px 0;
+        .card-term {
+            width: 200px;
+            font-weight: bold;
             color: #003366;
             font-size: 11pt;
+            margin-right: 20px;
+            flex-shrink: 0;
+            word-break: keep-all;
         }
 
-
-
-        .card p {
-            margin: 0;
+        .card-desc {
+            flex: 1;
             color: #444;
             font-size: 11pt;
-            padding-left: 0;
             white-space: pre-wrap;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -250,11 +252,11 @@
                         const card = document.createElement('div');
                         card.className = 'card';
                         card.innerHTML = `
-                            <input type="checkbox" class="chk-box" data-id="${item.id}">
-                            <div style="flex:1;">
-                                <h3>${item.term}</h3>
-                                <p>${item.description}</p>
-                            </div>
+                        card.innerHTML = `
+                            < input type = "checkbox" class="chk-box" data - id="${item.id}" >
+                            <div class="card-term">${item.term}</div>
+                            <div class="card-desc">${item.description}</div>
+                        `;
                         `;
                         container.appendChild(card);
                     });
