@@ -204,27 +204,24 @@
                 return;
             }
 
-            const data = {
-                action: 'save',
-                term: term,
-                description: description
-            };
+            // URL 파라미터로 데이터 전송
+            const url = `${API_URL}?action=save&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}`;
 
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(() => {
-                    alert('저장되었습니다!');
-                    document.getElementById('term').value = '';
-                    document.getElementById('description').value = '';
-                    setTimeout(() => loadData(currentSort), 1000);
+            fetch(url)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        alert('저장되었습니다!');
+                        document.getElementById('term').value = '';
+                        document.getElementById('description').value = '';
+                        loadData(currentSort);
+                    } else {
+                        alert('저장 실패: ' + (result.message || '알 수 없는 오류'));
+                    }
                 })
                 .catch(err => {
                     console.error('저장 오류:', err);
-                    alert('저장 중 오류가 발생했습니다.');
+                    alert('저장 중 오류가 발생했습니다: ' + err.message);
                 });
         }
 
@@ -283,24 +280,22 @@
 
             const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
 
-            const data = {
-                action: 'delete',
-                ids: ids
-            };
+            // URL 파라미터로 ID 목록 전송
+            const url = `${API_URL}?action=delete&ids=${ids.join(',')}`;
 
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-                .then(() => {
-                    alert('삭제되었습니다!');
-                    setTimeout(() => loadData(currentSort), 1000);
+            fetch(url)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        alert('삭제되었습니다!');
+                        loadData(currentSort);
+                    } else {
+                        alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+                    }
                 })
                 .catch(err => {
                     console.error('삭제 오류:', err);
-                    alert('삭제 중 오류가 발생했습니다.');
+                    alert('삭제 중 오류가 발생했습니다: ' + err.message);
                 });
         }
     </script>
