@@ -113,6 +113,17 @@
             font-weight: bold;
         }
 
+        .select-btn {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 6px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
         /* 리스트 카드 */
         .card {
             display: flex;
@@ -169,7 +180,10 @@
         </div>
 
         <div class="controls">
-            <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
+            <div style="display: flex; align-items: center;">
+                <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
+                <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
+            </div>
             <div>
                 <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
                 <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
@@ -270,6 +284,19 @@
                     document.getElementById('list-container').innerHTML =
                         '<p style="text-align:center; color:#d9534f; padding:40px;">데이터를 불러오는 중 오류가 발생했습니다.</p>';
                 });
+        }
+
+        // 전체 선택 / 해제
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.chk-box');
+            if (checkboxes.length === 0) return;
+
+            // 하나라도 체크가 안 된 것이 있으면 전체 선택, 모두 체크되어 있으면 전체 해제
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
         }
 
         // 선택 삭제
