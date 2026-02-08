@@ -206,10 +206,15 @@
 
             // URL 파라미터로 데이터 전송
             const url = `${API_URL}?action=save&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}`;
+            console.log('요청 URL:', url);
 
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    console.log('응답 상태:', res.status, res.statusText);
+                    return res.json();
+                })
                 .then(result => {
+                    console.log('응답 데이터:', result);
                     if (result.status === 'success') {
                         alert('저장되었습니다!');
                         document.getElementById('term').value = '';
@@ -282,10 +287,15 @@
 
             // URL 파라미터로 ID 목록 전송
             const url = `${API_URL}?action=delete&ids=${ids.join(',')}`;
+            console.log('삭제 요청 URL:', url);
 
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    console.log('삭제 응답 상태:', res.status, res.statusText);
+                    return res.json();
+                })
                 .then(result => {
+                    console.log('삭제 응답 데이터:', result);
                     if (result.status === 'success') {
                         alert('삭제되었습니다!');
                         loadData(currentSort);
