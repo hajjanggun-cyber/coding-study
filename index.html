@@ -285,12 +285,26 @@
         /* 탭 스타일 */
         .tabs {
             display: flex;
+            flex-wrap: nowrap;
+            /* 모바일에서 줄바꿈 방지 */
+            overflow-x: auto;
+            /* 가로 스크롤 허용 */
+            -webkit-overflow-scrolling: touch;
             margin-bottom: 0;
             border-bottom: 2px solid #003366;
+            scrollbar-width: none;
+            /* 파이어폭스 스크롤바 숨기기 */
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+            /* 크롬/사파리 스크롤바 숨기기 */
         }
 
         .tab {
-            padding: 12px 24px;
+            padding: 12px 20px;
+            white-space: nowrap;
+            /* 텍스트 줄바꿈 방지 */
             cursor: pointer;
             background: #f1f3f5;
             border: 1px solid #ddd;
@@ -300,6 +314,8 @@
             color: #777;
             border-radius: 5px 5px 0 0;
             transition: all 0.2s;
+            flex-shrink: 0;
+            /* 크기 줄어듦 방지 */
         }
 
         .tab:hover {
@@ -326,7 +342,7 @@
         <div class="tabs">
             <div class="tab active" id="tab-terms" onclick="switchTab('Terms')">Coding용어</div>
             <div class="tab" id="tab-commands" onclick="switchTab('Commands')">프롬프트</div>
-            <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고 영상</div>
+            <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고URL</div>
         </div>
 
         <div class="input-box">
@@ -402,9 +418,9 @@
                 descLabel.textContent = '상세 설명';
             } else if (sheetName === 'Videos') {
                 document.getElementById('tab-videos').classList.add('active');
-                termInput.placeholder = '영상 제목 (예: 자바스크립트 기초 강의)';
-                termLabel.textContent = '영상 제목';
-                descLabel.textContent = '영상 링크/설명';
+                termInput.placeholder = '참고 제목 (예: 유용한 사이트)';
+                termLabel.textContent = '참고 제목';
+                descLabel.textContent = '참고 URL/설명';
             }
 
             // 입력 필드 초기화
@@ -543,7 +559,7 @@
                         let typeName = '데이터';
                         if (currentSheet === 'Terms') typeName = '용어';
                         else if (currentSheet === 'Commands') typeName = '프롬프트';
-                        else if (currentSheet === 'Videos') typeName = '영상';
+                        else if (currentSheet === 'Videos') typeName = '내용';
 
                         container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                         return;
