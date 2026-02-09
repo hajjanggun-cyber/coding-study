@@ -1,11 +1,15 @@
 // 구글 Apps Script 코드 (참고용)
 // 이 코드를 구글 스프레드시트의 Apps Script 편집기에 붙여넣으세요
 
+// 구글 Apps Script 코드 (최신 버전 - 시트 분리형)
+// 이 코드를 구글 스프레드시트의 Apps Script 편집기에 [전체 붙여넣기] 하세요.
+
 function doGet(e) {
-  // 기본 시트 이름은 'Terms'로 설정 (기존 데이터 호환)
-  // 클라이언트에서 'sheetName' 파라미터를 보내면 해당 시트를 사용
-  const sheetName = e.parameter.sheetName || 'Terms';
+  // 파라미터 로그 확인 (스크립트 에디터의 '실행' 메뉴에서 확인 가능)
+  console.log("받은 파라미터:", JSON.stringify(e.parameter));
+
   const action = e.parameter.action;
+  const sheetName = e.parameter.sheetName || 'Terms'; // 기본값 'Terms'
 
   if (action === 'load') {
     return loadData(e.parameter.sort, sheetName);
@@ -15,7 +19,7 @@ function doGet(e) {
     return deleteData(e.parameter.ids, sheetName);
   }
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: '잘못된 요청' }))
+  return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: '잘못된 요청: ' + action }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -23,11 +27,11 @@ function getSheet(sheetName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(sheetName);
 
-  // 시트가 없으면 생성 (에러 방지)
+  // 시트가 없으면 새로 생성
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
-    // 새 시트인 경우 헤더 추가
-    sheet.appendRow(['ID', 'Term/Command', 'Description']);
+    sheet.appendRow(['ID', '용어/명령어', '설명']); // 헤더 추가
+    console.log("새 시트 생성됨:", sheetName);
   }
 
   return sheet;
@@ -37,31 +41,19 @@ function loadData(sortType, sheetName) {
   const sheet = getSheet(sheetName);
   const data = sheet.getDataRange().getValues();
 
-  // 데이터가 헤더밖에 없거나 비어있는 경우
+  // 헤더만 있거나 데이터가 없는 경우
   if (data.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify([]))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse([]);
   }
 
-  // 헤더 제외
-  const rows = data.slice(1);
+  const rows = data.slice(1); // 헤더 제외
+  let result = rows.map((row) => ({
+    id: row[0],
+    term: row[1],
+    description: row[2]
+  })).filter(item => item.term); // 빈 줄 제외
 
-  let result = rows.map((row, index) => ({
-    id: row[0] || (index + 1),
-    term: row[1] || '',
-    description: row[2] || ''
-  })).filter(item => item.term); // 빈 행 제외
-
-  // 정렬
-  if (sortType === 'newest') {
-    result.reverse();
-  } else if (sortType === 'alphabet') {
-    result.sort((a, b) => a.term.localeCompare(b.term, 'ko'));
-  }
-  // 'oldest'는 기본 순서 유지
-
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
+  return createJsonResponse(result);
 }
 
 function saveData(term, description, sheetName) {
@@ -69,58 +61,42 @@ function saveData(term, description, sheetName) {
     const sheet = getSheet(sheetName);
     const lastRow = sheet.getLastRow();
 
-    // ID 생성 로직: 기존 데이터가 있으면 마지막 ID + 1, 없으면 1
+    // ID 생성: 마지막 줄의 ID + 1
     let newId = 1;
     if (lastRow > 1) {
       const lastId = sheet.getRange(lastRow, 1).getValue();
-      newId = (typeof lastId === 'number') ? lastId + 1 : lastRow;
+      newId = (!isNaN(lastId) && lastId !== "") ? Number(lastId) + 1 : lastRow;
     }
 
     sheet.appendRow([newId, term, description]);
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: '저장 완료' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({ status: 'success', message: '저장 완료', sheet: sheetName });
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({ status: 'error', message: error.toString() });
   }
 }
 
 function deleteData(ids, sheetName) {
   try {
     const sheet = getSheet(sheetName);
-    const idArray = ids.split(',').map(id => parseInt(id));
+    const idArray = ids.split(',').map(id => String(id).trim());
 
-    // 역순으로 삭제 (인덱스 변경 방지)
-    idArray.sort((a, b) => b - a);
-
+    // 역순으로 삭제해야 인덱스가 꼬이지 않음
     const data = sheet.getDataRange().getValues();
-
-    for (let id of idArray) {
-      // ID에 해당하는 행 찾기 (헤더 제외하고 +1)
-      // 데이터를 다시 읽지 않고 기존 data 배열을 순회하므로, 삭제 시 행 번호 계산에 주의해야 함
-      // 행 삭제는 sheet에서 직접 수행
-
-      // 더 안전한 방법: TextFinder 사용 또는 역순 순회
-      // 여기서는 간단히 전체 스캔을 유지하되, 삭제 후 인덱스 밀림 현상은 
-      // idArray가 이미 역순 정렬되어 있고, 한 번의 요청에 대해 처리하므로
-      // SpreadsheetApp의 deleteRow는 즉시 반영됨을 고려해야 함.
-
-      // 개선된 삭제 로직:
-      // 행을 찾아서 지울 때마다 데이터 구조가 바뀌므로, 
-      // 여기서는 가장 간단하게: TextFinder로 ID 컬럼(A열)에서 찾기
-      const textFinder = sheet.getRange("A:A").createTextFinder(String(id)).matchEntireCell(true);
-      const result = textFinder.findNext();
-
-      if (result) {
-        sheet.deleteRow(result.getRow());
+    for (let i = data.length - 1; i >= 1; i--) {
+      const rowId = String(data[i][0]).trim();
+      if (idArray.includes(rowId)) {
+        sheet.deleteRow(i + 1);
       }
     }
 
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: '삭제 완료' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({ status: 'success', message: '삭제 완료' });
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({ status: 'error', message: error.toString() });
   }
+}
+
+// JSON 응답 생성을 위한 유틸리티 함수
+function createJsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
