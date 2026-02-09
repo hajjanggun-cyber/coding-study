@@ -220,6 +220,17 @@
             line-height: 1.5;
         }
 
+        /* 하이퍼링크 스타일 */
+        .card-desc a {
+            color: #003366 !important;
+            text-decoration: underline !important;
+            font-weight: bold;
+        }
+
+        .card-desc a:hover {
+            color: #0056b3 !important;
+        }
+
         /* 텍스트 래퍼 (PC 기본) */
         .card-content {
             display: flex;
@@ -353,14 +364,15 @@
         let currentSort = 'newest';
         let currentSheet = 'Terms'; // 현재 선택된 시트이름 (탭 상태)
 
-        // URL을 하이퍼링크로 변환하는 함수
+        // URL을 하이퍼링크로 변환하는 함수 (강화 버전)
         function linkify(text) {
             if (!text) return "";
-            // http 또는 https로 시작하는 URL 패턴 감지
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.toString().replace(urlRegex, function (url) {
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#003366; text-decoration:underline;">${url}</a>`;
+            // 보다 정교한 URL 감지를 위한 정규표현식
+            const urlPattern = /\b((?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|])/gim;
+            const result = text.toString().replace(urlPattern, function (url) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
+            return result;
         }
 
         // 페이지 로드 시 데이터 불러오기
