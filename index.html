@@ -391,6 +391,7 @@
 
         let currentSort = 'newest';
         let currentSheet = 'Terms'; // 현재 선택된 시트이름 (탭 상태)
+        let cachedData = null; // 모든 시트 데이터를 저장할 변수
 
         // URL을 하이퍼링크로 변환하는 함수 (프로토콜 없는 도메인 지원 버전)
         function linkify(text) {
@@ -409,10 +410,28 @@
             });
         }
 
-        // 페이지 로드 시 데이터 불러오기
+        // 페이지 로드 시 모든 데이터 한 번에 불러오기 (성능 최적화)
         window.onload = function () {
-            loadData('newest');
+            fetchAllData();
         };
+
+        // 전 시트 데이터를 한 번에 가져오는 함수
+        function fetchAllData(callback) {
+            const container = document.getElementById('list-container');
+            const url = `${API_URL}?action=loadAll&t=${new Date().getTime()}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    cachedData = data;
+                    if (callback) callback();
+                    else renderCurrentSheet();
+                })
+                .catch(err => {
+                    console.error('데이터 로드 오류:', err);
+                    if (container) container.innerHTML = '<p style="text-align:center; color:#d9534f; padding:40px;">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+                });
+        }
 
         // 탭 전환 기능
         function switchTab(sheetName) {
@@ -445,8 +464,12 @@
             document.getElementById('term').value = '';
             document.getElementById('description').value = '';
 
-            // 해당 시트의 데이터 다시 불러오기
-            loadData(currentSort);
+            // 성능 최적화: 서버 호출 없이 캐시된 데이터로 즉시 렌더링
+            if (cachedData) {
+                renderCurrentSheet();
+            } else {
+                fetchAllData();
+            }
         }
 
         // 인라인 수정 모드 토글
@@ -540,7 +563,7 @@
                     if (result.status === 'success') {
                         alert('저장되었습니다!');
                         cancelEdit(); // 입력창 초기화
-                        loadData(currentSort);
+                        fetchAllData(); // 데이터 갱신
                     } else {
                         alert('저장 실패: ' + (result.message || '알 수 없는 오류'));
                     }
@@ -551,66 +574,58 @@
                 });
         }
 
-        // 데이터 불러오기
+        // 데이터 불러오기 (기존 호환성 유지 및 렌더링 호출)
         function loadData(sortType) {
             currentSort = sortType;
+            if (cachedData) {
+                renderCurrentSheet();
+            } else {
+                fetchAllData();
+            }
+        }
 
+        // 현재 시트 데이터 렌더링 (실제 화면 출력 로직)
+        function renderCurrentSheet() {
             const container = document.getElementById('list-container');
-            // 로딩 표시
-            container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">데이터를 불러오는 중입니다...</p>';
+            if (!cachedData) return;
+
+            const data = [...(cachedData[currentSheet] || [])];
 
             // 정렬 버튼 활성화 표시
             document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-            if (sortType === 'newest') document.getElementById('btn-newest').classList.add('active');
-            if (sortType === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
+            if (currentSort === 'newest') document.getElementById('btn-newest').classList.add('active');
+            if (currentSort === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
 
-            // 서버에 sheetName을 명확히 전달하여 해당 시트의 데이터만 가져오도록 요청
-            const fetchUrl = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}`;
-            console.log('데이터 로드 시트:', currentSheet);
+            container.innerHTML = ''; // 초기화
 
-            fetch(fetchUrl)
-                .then(res => res.json())
-                .then(data => {
-                    container.innerHTML = ''; // 초기화
+            if (data.length === 0) {
+                let typeName = (currentSheet === 'Terms' ? '용어' : currentSheet === 'Commands' ? '프롬프트' : '내용');
+                container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
+                return;
+            }
 
-                    if (!data || data.length === 0) {
-                        let typeName = '데이터';
-                        if (currentSheet === 'Terms') typeName = '용어';
-                        else if (currentSheet === 'Commands') typeName = '프롬프트';
-                        else if (currentSheet === 'Videos') typeName = '내용';
+            // 정렬 적용
+            if (currentSort === 'newest') {
+                data.sort((a, b) => b.id - a.id);
+            } else if (currentSort === 'alphabet') {
+                data.sort((a, b) => String(a.term).localeCompare(String(b.term), 'ko'));
+            }
 
-                        container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
-                        return;
-                    }
-
-                    // 클라이언트 측 정렬 로직
-                    if (currentSort === 'newest') {
-                        data.sort((a, b) => b.id - a.id);
-                    } else if (currentSort === 'alphabet') {
-                        data.sort((a, b) => String(a.term).localeCompare(String(b.term), 'ko'));
-                    }
-
-                    data.forEach(item => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.setAttribute('data-id', item.id);
-                        card.innerHTML = `
-                            <input type="checkbox" class="chk-box" data-id="${item.id}">
-                            <div class="card-content">
-                                <div class="card-term">${item.term}</div>
-                                <div class="card-desc">${linkify(item.description)}</div>
-                            </div>
-                            <div class="card-actions">
-                                <button class="edit-btn" onclick="toggleInlineEdit('${item.id}')">수정</button>
-                            </div>`;
-                        container.appendChild(card);
-                    });
-                })
-                .catch(err => {
-                    console.error('불러오기 오류:', err);
-                    container.innerHTML =
-                        '<p style="text-align:center; color:#d9534f; padding:40px;">데이터를 불러오는 중 오류가 발생했습니다.<br>GAS 배포 및 시트 설정을 확인해주세요.</p>';
-                });
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.setAttribute('data-id', item.id);
+                card.innerHTML = `
+                    <input type="checkbox" class="chk-box" data-id="${item.id}">
+                    <div class="card-content">
+                        <div class="card-term">${item.term}</div>
+                        <div class="card-desc">${linkify(item.description)}</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="edit-btn" onclick="toggleInlineEdit('${item.id}')">수정</button>
+                    </div>`;
+                container.appendChild(card);
+            });
         }
 
         // 전체 선택 / 해제
