@@ -358,29 +358,34 @@
         function loadData(sortType) {
             currentSort = sortType;
 
+            const container = document.getElementById('list-container');
+            // 로딩 표시
+            container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">데이터를 불러오는 중입니다...</p>';
+
             // 정렬 버튼 활성화 표시
             document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
             if (sortType === 'newest') document.getElementById('btn-newest').classList.add('active');
             if (sortType === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
 
-            // 서버에는 항상 'load' 요청만 보내고 정렬은 클라이언트에서 처리
-            // sheetName 파라미터 추가
-            fetch(`${API_URL}?action=load&sheetName=${currentSheet}`)
+            // 서버에 sheetName을 명확히 전달하여 해당 시트의 데이터만 가져오도록 요청
+            const fetchUrl = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}`;
+            console.log('데이터 로드 시트:', currentSheet);
+
+            fetch(fetchUrl)
                 .then(res => res.json())
                 .then(data => {
-                    const container = document.getElementById('list-container');
-                    container.innerHTML = '';
+                    container.innerHTML = ''; // 초기화
 
                     if (!data || data.length === 0) {
-                        container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">등록된 데이터가 없습니다.</p>';
+                        const typeName = (currentSheet === 'Terms' ? '용어' : '명령어');
+                        container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                         return;
                     }
 
-                    // 클라이언트 측 정렬 로직 (반응 속도 향상 및 로직 통일)
+                    // 클라이언트 측 정렬 로직
                     if (currentSort === 'newest') {
                         data.sort((a, b) => b.id - a.id);
                     } else if (currentSort === 'alphabet') {
-                        // 가나다순 (오름차순) 정렬
                         data.sort((a, b) => String(a.term).localeCompare(String(b.term), 'ko'));
                     }
 
@@ -397,8 +402,8 @@
                 })
                 .catch(err => {
                     console.error('불러오기 오류:', err);
-                    document.getElementById('list-container').innerHTML =
-                        '<p style="text-align:center; color:#d9534f; padding:40px;">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+                    container.innerHTML =
+                        '<p style="text-align:center; color:#d9534f; padding:40px;">데이터를 불러오는 중 오류가 발생했습니다.<br>GAS 배포 및 시트 설정을 확인해주세요.</p>';
                 });
         }
 
