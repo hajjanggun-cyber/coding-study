@@ -211,12 +211,52 @@
                 width: 100%;
             }
         }
+
+        /* 탭 스타일 */
+        .tabs {
+            display: flex;
+            margin-bottom: 0;
+            border-bottom: 2px solid #003366;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: #f1f3f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 4px;
+            font-weight: bold;
+            color: #777;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: #003366;
+            color: white;
+            border-color: #003366;
+        }
+
+        .input-box {
+            border-top: none;
+            /* 탭과 자연스럽게 연결 */
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h2>코딩 용어 정리</h2>
+
+        <div class="tabs">
+            <div class="tab active" id="tab-terms" onclick="switchTab('Terms')">코딩 용어</div>
+            <div class="tab" id="tab-commands" onclick="switchTab('Commands')">명령어</div>
+        </div>
 
         <div class="input-box">
             <div class="input-row">
@@ -250,11 +290,32 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbwIVxU3kOzhQUEnTG5Z3GpMtTGAfYkeeccGQFru3p8cvDw_NLTjOakvTC1sZc9XT9SiwA/exec";
 
         let currentSort = 'newest';
+        let currentSheet = 'Terms'; // 현재 선택된 시트이름 (탭 상태)
 
         // 페이지 로드 시 데이터 불러오기
         window.onload = function () {
             loadData('newest');
         };
+
+        // 탭 전환 기능
+        function switchTab(sheetName) {
+            currentSheet = sheetName;
+
+            // 탭 스타일 업데이트
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (sheetName === 'Terms') {
+                document.getElementById('tab-terms').classList.add('active');
+                document.getElementById('term').placeholder = '용어';
+                document.querySelector('.label').textContent = '용어';
+            } else {
+                document.getElementById('tab-commands').classList.add('active');
+                document.getElementById('term').placeholder = '명령어 (예: git commit)';
+                document.querySelector('.label').textContent = '명령어';
+            }
+
+            // 데이터 다시 불러오기
+            loadData(currentSort);
+        }
 
         // 데이터 저장
         function saveData() {
@@ -266,8 +327,8 @@
                 return;
             }
 
-            // URL 파라미터로 데이터 전송
-            const url = `${API_URL}?action=save&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}`;
+            // URL 파라미터로 데이터 전송 (sheetName 추가)
+            const url = `${API_URL}?action=save&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}&sheetName=${currentSheet}`;
             console.log('요청 URL:', url);
 
             fetch(url)
@@ -302,7 +363,8 @@
             if (sortType === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
 
             // 서버에는 항상 'load' 요청만 보내고 정렬은 클라이언트에서 처리
-            fetch(API_URL + '?action=load')
+            // sheetName 파라미터 추가
+            fetch(`${API_URL}?action=load&sheetName=${currentSheet}`)
                 .then(res => res.json())
                 .then(data => {
                     const container = document.getElementById('list-container');
@@ -366,8 +428,8 @@
 
             const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
 
-            // URL 파라미터로 ID 목록 전송
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}`;
+            // URL 파라미터로 ID 목록 전송 (sheetName 추가)
+            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}`;
             console.log('삭제 요청 URL:', url);
 
             fetch(url)
