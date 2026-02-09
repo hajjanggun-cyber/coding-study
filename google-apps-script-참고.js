@@ -15,6 +15,8 @@ function doGet(e) {
     return loadData(e.parameter.sort, sheetName);
   } else if (action === 'save') {
     return saveData(e.parameter.term, e.parameter.description, sheetName);
+  } else if (action === 'update') {
+    return updateData(e.parameter.id, e.parameter.term, e.parameter.description, sheetName);
   } else if (action === 'delete') {
     return deleteData(e.parameter.ids, sheetName);
   }
@@ -90,6 +92,27 @@ function deleteData(ids, sheetName) {
     }
 
     return createJsonResponse({ status: 'success', message: '삭제 완료' });
+  } catch (error) {
+    return createJsonResponse({ status: 'error', message: error.toString() });
+  }
+}
+
+function updateData(id, term, description, sheetName) {
+  try {
+    const sheet = getSheet(sheetName);
+    const data = sheet.getDataRange().getValues();
+    const idStr = String(id).trim();
+
+    // ID에 해당하는 행 찾기
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === idStr) {
+        sheet.getRange(i + 1, 2).setValue(term);        // 용어 수정 (B열)
+        sheet.getRange(i + 1, 3).setValue(description); // 설명 수정 (C열)
+        return createJsonResponse({ status: 'success', message: '수정 완료' });
+      }
+    }
+
+    return createJsonResponse({ status: 'error', message: 'ID를 찾을 수 없습니다.' });
   } catch (error) {
     return createJsonResponse({ status: 'error', message: error.toString() });
   }
