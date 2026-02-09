@@ -392,15 +392,21 @@
         let currentSort = 'newest';
         let currentSheet = 'Terms'; // 현재 선택된 시트이름 (탭 상태)
 
-        // URL을 하이퍼링크로 변환하는 함수 (강화 버전)
+        // URL을 하이퍼링크로 변환하는 함수 (프로토콜 없는 도메인 지원 버전)
         function linkify(text) {
             if (!text) return "";
-            // 보다 정교한 URL 감지를 위한 정규표현식
-            const urlPattern = /\b((?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|])/gim;
-            const result = text.toString().replace(urlPattern, function (url) {
-                return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            // 1. 프로토콜이 있는 URL (http, https 등)
+            // 2. 프로토콜은 없지만 흔한 도메인 형태 (com, net, org, kr, io, dev, pages.dev 등)
+            const combinedPattern = /((?:https?|ftp):\/\/[^\s]+|\b[a-z0-9.-]+\.(?:com|net|org|kr|io|dev|pages\.dev|me|info)(?:\/[^\s]*)?\b)/gim;
+
+            return text.toString().replace(combinedPattern, function (url) {
+                let href = url;
+                // 프로토콜(http:// 또는 https://)로 시작하지 않으면 앞에 https://를 추가
+                if (!/^https?:\/\//i.test(url)) {
+                    href = 'https://' + url;
+                }
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
             });
-            return result;
         }
 
         // 페이지 로드 시 데이터 불러오기
