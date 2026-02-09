@@ -686,24 +686,19 @@
                 return;
             }
 
-            const targetSheets = {
-                'Terms': 'Coding용어',
-                'Commands': '프롬프트',
-                'Videos': '참고URL'
+            const menuMap = {
+                '1': 'Terms',
+                '2': 'Commands',
+                '3': 'Videos'
             };
 
-            // 현재 카테고리를 제외한 옵션 목록 생성
-            const options = Object.keys(targetSheets)
-                .filter(s => s !== currentSheet)
-                .map(s => `${s} (${targetSheets[s]})`);
+            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n\n(번호를 입력해주세요)`);
 
-            const targetKey = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n이동 가능 대상: ${options.join(', ')}\n(정확한 이름을 입력해주세요: Terms, Commands, Videos)`);
+            if (!targetNum) return;
 
-            if (!targetKey) return;
-
-            const normalizedTarget = targetKey.trim();
-            if (!targetSheets[normalizedTarget]) {
-                alert('잘못된 이름입니다. Terms, Commands, 또는 Videos 중 하나를 입력해주세요.');
+            const normalizedTarget = menuMap[targetNum.trim()];
+            if (!normalizedTarget) {
+                alert('잘못된 번호입니다. 1, 2, 3 중에서 선택해주세요.');
                 return;
             }
 
@@ -720,14 +715,14 @@
                 .then(result => {
                     if (result.status === 'success') {
                         alert(result.message || '이동되었습니다!');
-                        loadData(currentSort);
+                        fetchAllData(); // 전체 데이터 다시 로드 및 화면 갱신
                     } else {
                         alert('이동 실패: ' + (result.message || '알 수 없는 오류'));
                     }
                 })
                 .catch(err => {
                     console.error('이동 오류:', err);
-                    alert('이동 중 오류가 발생했습니다. GAS에 moveData 로직이 있는지 확인해주세요.');
+                    alert('이동 중 오류가 발생했습니다.');
                 });
         }
     </script>
