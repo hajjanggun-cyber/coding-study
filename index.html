@@ -354,6 +354,7 @@
             <div class="tab active" id="tab-terms" onclick="switchTab('Terms')">Coding용어</div>
             <div class="tab" id="tab-commands" onclick="switchTab('Commands')">프롬프트</div>
             <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고URL</div>
+            <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
         </div>
 
         <div class="input-box">
@@ -477,6 +478,11 @@
                 termInput.placeholder = '참고 제목 (예: 유용한 사이트)';
                 termLabel.textContent = '참고 제목';
                 descLabel.textContent = '참고 URL/설명';
+            } else if (sheetName === 'Ideas') {
+                document.getElementById('tab-ideas').classList.add('active');
+                termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
+                termLabel.textContent = '아이디어 제목';
+                descLabel.textContent = '아이디어 상세 내용';
             }
 
             // 입력 필드 초기화
@@ -618,7 +624,12 @@
             container.innerHTML = ''; // 초기화
 
             if (data.length === 0) {
-                let typeName = (currentSheet === 'Terms' ? '용어' : currentSheet === 'Commands' ? '프롬프트' : '내용');
+                let typeName = '데이터';
+                if (currentSheet === 'Terms') typeName = '용어';
+                else if (currentSheet === 'Commands') typeName = '프롬프트';
+                else if (currentSheet === 'Videos') typeName = '참고 내용';
+                else if (currentSheet === 'Ideas') typeName = '아이디어';
+
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                 return;
             }
@@ -708,10 +719,11 @@
             const menuMap = {
                 '1': 'Terms',
                 '2': 'Commands',
-                '3': 'Videos'
+                '3': 'Videos',
+                '4': 'Ideas'
             };
 
-            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n\n(번호를 입력해주세요)`);
+            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n\n(번호를 입력해주세요)`);
 
             if (!targetNum) return;
 
