@@ -5,7 +5,9 @@ function doGet(e) {
   const action = e.parameter.action;
   const sheetName = e.parameter.sheetName || 'Terms';
 
-  if (action === 'load') {
+  if (action === 'loadAll') {
+    return loadAllData(); // 모든 시트 데이터를 한 번에 반환
+  } else if (action === 'load') {
     return loadData(e.parameter.sort, sheetName);
   } else if (action === 'save') {
     return saveData(e.parameter.term, e.parameter.description, sheetName);
@@ -16,6 +18,28 @@ function doGet(e) {
   } else if (action === 'move') {
     return moveData(e.parameter.ids, e.parameter.sheetName, e.parameter.targetSheet);
   }
+}
+
+// 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
+function loadAllData() {
+  const sheets = ['Terms', 'Commands', 'Videos'];
+  const result = {};
+
+  sheets.forEach(name => {
+    const sheet = getSheet(name);
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) {
+      result[name] = [];
+    } else {
+      result[name] = data.slice(1).map(row => ({
+        id: row[0],
+        term: row[1],
+        description: row[2]
+      })).filter(item => item.term);
+    }
+  });
+
+  return createJsonResponse(result);
 }
 
 function getSheet(sheetName) {
