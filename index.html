@@ -315,6 +315,7 @@
         <div class="tabs">
             <div class="tab active" id="tab-terms" onclick="switchTab('Terms')">Coding용어</div>
             <div class="tab" id="tab-commands" onclick="switchTab('Commands')">프롬프트</div>
+            <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고 영상</div>
         </div>
 
         <div class="input-box">
@@ -361,16 +362,27 @@
         function switchTab(sheetName) {
             currentSheet = sheetName;
 
-            // 탭 스타일 업데이트
+            // 탭 스타일 및 입력창 텍스트 업데이트
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const termInput = document.getElementById('term');
+            const termLabel = document.querySelector('.label');
+            const descLabel = document.querySelectorAll('.label')[1];
+
             if (sheetName === 'Terms') {
                 document.getElementById('tab-terms').classList.add('active');
-                document.getElementById('term').placeholder = '용어 (예: API, Variable)';
-                document.querySelector('.label').textContent = '용어';
-            } else {
+                termInput.placeholder = '용어 (예: API, Variable)';
+                termLabel.textContent = '용어';
+                descLabel.textContent = '용어 설명';
+            } else if (sheetName === 'Commands') {
                 document.getElementById('tab-commands').classList.add('active');
-                document.getElementById('term').placeholder = '프롬프트 (예: 시를 써줘, 코드 리뷰해줘)';
-                document.querySelector('.label').textContent = '프롬프트';
+                termInput.placeholder = '프롬프트 (예: 시를 써줘, 코드 리뷰해줘)';
+                termLabel.textContent = '프롬프트';
+                descLabel.textContent = '상세 설명';
+            } else if (sheetName === 'Videos') {
+                document.getElementById('tab-videos').classList.add('active');
+                termInput.placeholder = '영상 제목 (예: 자바스크립트 기초 강의)';
+                termLabel.textContent = '영상 제목';
+                descLabel.textContent = '영상 링크/설명';
             }
 
             // 입력 필드 초기화
@@ -506,7 +518,11 @@
                     container.innerHTML = ''; // 초기화
 
                     if (!data || data.length === 0) {
-                        const typeName = (currentSheet === 'Terms' ? '용어' : '프롬프트');
+                        let typeName = '데이터';
+                        if (currentSheet === 'Terms') typeName = '용어';
+                        else if (currentSheet === 'Commands') typeName = '프롬프트';
+                        else if (currentSheet === 'Videos') typeName = '영상';
+
                         container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                         return;
                     }
