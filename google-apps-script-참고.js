@@ -9,7 +9,7 @@ function doGet(e) {
   console.log("받은 파라미터:", JSON.stringify(e.parameter));
 
   const action = e.parameter.action;
-  const sheetName = e.parameter.sheetName || 'Terms'; // 기본값 'Terms'
+  const sheetName = e.parameter.sheetName || 'Terms'; // 'Terms', 'Commands', 'Videos' 중 하나
 
   if (action === 'load') {
     return loadData(e.parameter.sort, sheetName);
