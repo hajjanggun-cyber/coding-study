@@ -678,8 +678,23 @@
                 body: params
             })
                 .then(() => {
-                    alert('수정되었습니다!');
-                    setTimeout(loadData, 1000, currentSort);
+                    // 캐시 데이터 업데이트
+                    if (cachedData && cachedData[currentSheet]) {
+                        const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
+                        if (itemIndex !== -1) {
+                            cachedData[currentSheet][itemIndex].term = term;
+                            cachedData[currentSheet][itemIndex].description = description;
+                        }
+                    }
+
+                    // UI 즉시 업데이트
+                    const termDiv = card.querySelector('.card-term');
+                    const descDiv = card.querySelector('.card-desc');
+                    if (termDiv) termDiv.textContent = term;
+                    if (descDiv) descDiv.innerHTML = linkify(description);
+
+                    // 편집 모드 종료
+                    toggleInlineEdit(id);
                 })
                 .catch(err => {
                     console.error('오류:', err);
@@ -715,13 +730,26 @@
                 return;
             }
 
-            // POST 요청을 위한 페이로드 작성
-            const payload = {
-                action: 'save',
+            // 임시 ID 생성 (서버에서 실제 ID를 받을 때까지 사용)
+            const tempId = 'temp_' + Date.now();
+
+            // 즉시 UI에 추가 (속도 개선)
+            const newItem = {
+                id: tempId,
                 term: term,
-                description: description,
-                sheetName: currentSheet
+                description: description
             };
+
+            // 캐시에 추가
+            if (cachedData && cachedData[currentSheet]) {
+                cachedData[currentSheet].unshift(newItem); // 최신 항목이 맨 위로 오도록 unshift 사용
+            }
+
+            // UI에 즉시 표시
+            addCardToUI(newItem);
+
+            // 입력 폼 초기화
+            cancelEdit();
 
             // 모든 카테고리를 안전한 POST 방식으로 전송 (CORS 오류 방지)
             const params = new URLSearchParams();
@@ -732,22 +760,27 @@
 
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // 보안 차단을 피하기 위한 설정
+                mode: 'no-cors',
                 body: params
             })
                 .then(() => {
                     // 강의내용일 때만 상세 안내 메시지 표시
                     if (currentSheet === 'Lectures') {
-                        alert('강의 내용 등록 요청을 보냈습니다. (잠시 후 목록에 나타나지 않으면 GAS 설정을 확인해주세요)');
-                    } else {
-                        alert('저장되었습니다!');
+                        // 메시지는 표시하지만 UI는 이미 업데이트 완료
+                        console.log('강의 내용 등록 요청을 보냈습니다.');
                     }
-                    cancelEdit();
-                    setTimeout(fetchAllData, 1500); // 전송 후 목록 갱신
+                    // 백그라운드에서 실제 ID로 업데이트하기 위해 잠시 후 데이터 재로드
+                    setTimeout(() => {
+                        fetchAllData();
+                    }, 1500);
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('저장 중 연결 오류가 발생했습니다. 인터넷이나 GAS 상태를 확인해주세요.');
+                    // 오류 시 임시 항목 제거 및 데이터 재로드
+                    const tempCard = document.querySelector(`.card[data-id="${tempId}"]`);
+                    if (tempCard) tempCard.remove();
+                    alert('저장 중 연결 오류가 발생했습니다.');
+                    fetchAllData();
                 });
         }
 
@@ -759,6 +792,45 @@
             } else {
                 fetchAllData();
             }
+        }
+
+        // UI에 카드 즉시 추가하는 헬퍼 함수
+        function addCardToUI(item) {
+            const container = document.getElementById('data-list');
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-id', item.id);
+
+            const isLecture = currentSheet === 'Lectures';
+            const description = linkify(item.description);
+            const descriptionText = String(item.description || '');
+            const lines = descriptionText.split('\n');
+            const isLongContent = lines.length > 1;
+
+            let descHtml = '';
+            if (isLecture && isLongContent) {
+                descHtml = `
+                    <div>
+                        <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                        <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                    </div>
+                `;
+            } else {
+                descHtml = `<div class="card-desc">${description}</div>`;
+            }
+
+            card.innerHTML = `
+                <input type="checkbox" class="chk-box" data-id="${item.id}">
+                <div class="card-content">
+                    <div class="card-term">${item.term}</div>
+                    ${descHtml}
+                </div>
+                <div class="card-actions">
+                    <button class="edit-btn" onclick="toggleInlineEdit('${item.id}')">수정</button>
+                </div>`;
+
+            // 최신 항목이 맨 위에 오도록 prepend
+            container.prepend(card);
         }
 
         // 현재 시트 데이터 렌더링 (실제 화면 출력 로직)
