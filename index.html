@@ -716,7 +716,9 @@
                 // 강의내용 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
                 const isLecture = currentSheet === 'Lectures';
                 const description = linkify(item.description);
-                const lines = item.description.split('\n');
+                // description을 문자열로 변환 후 split 사용 (안전성 확보)
+                const descriptionText = String(item.description || '');
+                const lines = descriptionText.split('\n');
                 const isLongContent = lines.length > 1;
 
                 let descHtml = '';
