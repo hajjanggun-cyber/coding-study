@@ -289,6 +289,22 @@
             box-sizing: border-box;
         }
 
+        /* 수정 모드일 때 강의정리/실전과정의 wrapper div도 전체 너비 사용 */
+        .card.editing .card-content>div {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+            flex: 1;
+        }
+
+        /* 모든 inline-textarea가 부모 너비를 완전히 채우도록 강제 */
+        .card.editing .inline-textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
         /* 수정 모드일 때 제목 영역도 전체 너비 사용 */
         .card.editing .card-term {
             width: 100% !important;
