@@ -19,7 +19,23 @@ function doGet(e) {
 // POST 요청 처리 (긴 데이터를 저장/수정할 때 사용)
 function doPost(e) {
   try {
-    const params = JSON.parse(e.postData.contents);
+    let params;
+
+    // 1. JSON 형태의 데이터인 경우 (e.postData 사용)
+    if (e.postData && e.postData.contents) {
+      try {
+        params = JSON.parse(e.postData.contents);
+      } catch (e) {
+        // JSON 파싱 실패 시 일반 파라미터로 시도
+        params = e.parameter;
+      }
+    }
+
+    // 2. 만약 params가 비어있다면 e.parameter에서 직접 가져옴
+    if (!params || Object.keys(params).length === 0) {
+      params = e.parameter;
+    }
+
     const action = params.action;
     const sheetName = params.sheetName || 'Coding';
 
