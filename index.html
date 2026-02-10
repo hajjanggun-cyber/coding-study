@@ -746,15 +746,25 @@
                 return;
             }
 
-            const payload = {
-                action: 'update',
-                id: id,
-                term: term,
-                description: description,
-                sheetName: currentSheet
-            };
+            // 즉시 캐시 데이터 업데이트 (속도 개선)
+            if (cachedData && cachedData[currentSheet]) {
+                const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
+                if (itemIndex !== -1) {
+                    cachedData[currentSheet][itemIndex].term = term;
+                    cachedData[currentSheet][itemIndex].description = description;
+                }
+            }
 
-            // 모든 카테고리를 안전한 POST 방식으로 수정 전송
+            // 즉시 UI 업데이트
+            const termDiv = card.querySelector('.card-term');
+            const descDiv = card.querySelector('.card-desc');
+            if (termDiv) termDiv.textContent = term;
+            if (descDiv) descDiv.innerHTML = linkify(description);
+
+            // 편집 모드 즉시 종료
+            toggleInlineEdit(id);
+
+            // 백그라운드에서 서버 동기화
             const params = new URLSearchParams();
             params.append('action', 'update');
             params.append('id', id);
@@ -768,27 +778,12 @@
                 body: params
             })
                 .then(() => {
-                    // 캐시 데이터 업데이트
-                    if (cachedData && cachedData[currentSheet]) {
-                        const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
-                        if (itemIndex !== -1) {
-                            cachedData[currentSheet][itemIndex].term = term;
-                            cachedData[currentSheet][itemIndex].description = description;
-                        }
-                    }
-
-                    // UI 즉시 업데이트
-                    const termDiv = card.querySelector('.card-term');
-                    const descDiv = card.querySelector('.card-desc');
-                    if (termDiv) termDiv.textContent = term;
-                    if (descDiv) descDiv.innerHTML = linkify(description);
-
-                    // 편집 모드 종료
-                    toggleInlineEdit(id);
+                    // 서버 동기화 완료 (UI는 이미 업데이트됨)
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('수정 중 오류가 발생했습니다.');
+                    alert('수정 중 오류가 발생했습니다. 새로고침합니다.');
+                    fetchCurrentTabData();
                 });
         }
 
