@@ -734,8 +734,13 @@
                 card.classList.add('editing');
                 termDiv.innerHTML = `<input type="text" class="inline-input" value="${currentTerm.replace(/"/g, '&quot;')}">`;
 
-                // 강의내용/작업과정은 큰 textarea 사용
-                const textareaRows = (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') ? 20 : 3;
+                // 내용의 줄 수를 계산하여 textarea 높이 자동 조정
+                const lines = currentDesc.split('\n').length;
+                const minRows = (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') ? 10 : 3;
+                const calculatedRows = Math.max(minRows, lines + 2); // 여유 공간 2줄 추가
+                const maxRows = 50; // 최대 50줄
+                const textareaRows = Math.min(calculatedRows, maxRows);
+
                 descDiv.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
 
                 const actionsDiv = card.querySelector('.card-actions');
