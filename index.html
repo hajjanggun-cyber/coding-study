@@ -816,25 +816,37 @@
                 return;
             }
 
-            const menuMap = {
-                '1': 'Coding',
-                '2': 'Prompt',
-                '3': 'URL',
-                '4': 'Ideas',
-                '5': 'Lectures'
-            };
+            // 강의내용은 다른 카테고리와 분리 (서로 이동 불가)
+            const isCurrentLectures = currentSheet === 'Lectures';
 
-            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n5. 강의내용\n\n(번호를 입력해주세요)`);
+            let menuMap, menuText;
+
+            if (isCurrentLectures) {
+                // 강의내용에서는 강의내용으로만 이동 가능 (실질적으로 이동 불가)
+                alert('강의내용은 다른 카테고리로 이동할 수 없습니다.');
+                return;
+            } else {
+                // 다른 카테고리에서는 강의내용을 제외한 카테고리로만 이동 가능
+                menuMap = {
+                    '1': 'Coding',
+                    '2': 'Prompt',
+                    '3': 'URL',
+                    '4': 'Ideas'
+                };
+                menuText = `선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n\n(번호를 입력해주세요)`;
+            }
+
+            const targetNum = prompt(menuText);
 
             if (!targetNum) return;
 
-            const normalizedTarget = menuMap[targetNum.trim()];
-            if (!normalizedTarget) {
-                alert('잘못된 번호입니다. 1, 2, 3, 4, 5 중에서 선택해주세요.');
+            const targetSheet = menuMap[targetNum.trim()];
+            if (!targetSheet) {
+                alert('올바른 번호를 입력해주세요.');
                 return;
             }
 
-            if (normalizedTarget === currentSheet) {
+            if (targetSheet === currentSheet) {
                 alert('현재와 같은 카테고리로는 이동할 수 없습니다.');
                 return;
             }
