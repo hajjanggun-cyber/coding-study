@@ -254,6 +254,51 @@
             color: #0056b3;
         }
 
+        /* 로딩 인디케이터 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #003366;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #003366;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
         /* 카테고리 이동 모달 */
         .modal {
             display: none;
@@ -445,6 +490,12 @@
 </head>
 
 <body>
+    <!-- 로딩 인디케이터 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">데이터를 불러오는 중...</div>
+    </div>
+
     <div class="container">
         <h2>코딩 용어 정리</h2>
 
@@ -521,14 +572,43 @@
             });
         }
 
-        // 페이지 로드 시 모든 데이터 한 번에 불러오기 (성능 최적화)
+        // 페이지 로드 시 코딩용어 탭만 먼저 불러오기 (성능 최적화)
         window.onload = function () {
-            fetchAllData();
+            showLoading();
+            fetchCurrentTabData();
         };
 
-        // 전 시트 데이터를 한 번에 가져오는 함수
+        // 로딩 표시
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        // 로딩 숨기기
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        // 현재 탭만 불러오기 (초기 로딩 속도 개선)
+        function fetchCurrentTabData() {
+            const url = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (!cachedData) cachedData = {};
+                    cachedData[currentSheet] = data;
+                    renderCurrentSheet();
+                    hideLoading();
+                })
+                .catch(err => {
+                    console.error('데이터 로드 오류:', err);
+                    hideLoading();
+                    alert('데이터를 불러오는 중 오류가 발생했습니다.');
+                });
+        }
+
+        // 전 시트 데이터를 한 번에 가져오는 함수 (백그라운드 동기화용)
         function fetchAllData(callback) {
-            const container = document.getElementById('list-container');
             const url = `${API_URL}?action=loadAll&t=${new Date().getTime()}`;
 
             fetch(url)
@@ -562,12 +642,22 @@
                 });
         }
 
-        // 탭 전환 기능
+        // 탭 전환 함수
         function switchTab(sheetName) {
             currentSheet = sheetName;
 
-            // 탭 스타일 및 입력창 텍스트 업데이트
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // 탭 활성화 표시
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`tab-${sheetName.toLowerCase()}`).classList.add('active');
+
+            // 해당 탭 데이터가 없으면 로딩
+            if (!cachedData || !cachedData[sheetName]) {
+                showLoading();
+                fetchCurrentTabData();
+            } else {
+                renderCurrentSheet();
+            }
+
             const termInput = document.getElementById('term');
             const termLabel = document.querySelector('.label');
             const descLabel = document.querySelectorAll('.label')[1];
