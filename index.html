@@ -814,8 +814,10 @@
             if (termDiv) termDiv.textContent = term;
             if (descDiv) descDiv.innerHTML = linkify(description);
 
-            // 편집 모드 즉시 종료
-            toggleInlineEdit(id);
+            // 편집 모드 즉시 종료 (toggleInlineEdit 대신 직접 처리)
+            const actionsDiv = card.querySelector('.card-actions');
+            actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
+            card.classList.remove('editing');
 
             // 백그라운드에서 서버 동기화
             const params = new URLSearchParams();
