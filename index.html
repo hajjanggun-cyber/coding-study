@@ -770,9 +770,26 @@
                 document.querySelectorAll('.card.editing').forEach(c => c.classList.remove('editing'));
 
                 const termDiv = card.querySelector('.card-term');
-                const descDiv = card.querySelector('.card-desc');
+                let descDiv = card.querySelector('.card-desc');
                 const currentTerm = termDiv.textContent;
-                const currentDesc = descDiv.textContent;
+
+                // 강의내용/실전과정의 경우 descDiv가 부모 div 안에 있을 수 있음
+                let descParent = null;
+                if (!descDiv) {
+                    // descDiv를 찾지 못한 경우, card-content 내부에서 찾기
+                    const cardContent = card.querySelector('.card-content');
+                    descDiv = cardContent.querySelector('.card-desc');
+                    if (descDiv) {
+                        descParent = descDiv.parentElement;
+                    }
+                } else {
+                    // descDiv의 부모가 card-content가 아니면 (즉, wrapper div가 있으면)
+                    if (descDiv.parentElement && !descDiv.parentElement.classList.contains('card-content')) {
+                        descParent = descDiv.parentElement;
+                    }
+                }
+
+                const currentDesc = descDiv ? descDiv.textContent : '';
 
                 card.classList.add('editing');
 
@@ -792,7 +809,12 @@
                 const maxRows = 50; // 최대 50줄
                 const textareaRows = Math.min(calculatedRows, maxRows);
 
-                descDiv.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
+                // descParent가 있으면 (접기/펼치기 구조) 부모에 설정, 없으면 descDiv에 직접 설정
+                if (descParent) {
+                    descParent.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
+                } else {
+                    descDiv.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
+                }
 
                 const actionsDiv = card.querySelector('.card-actions');
                 actionsDiv.innerHTML = `
