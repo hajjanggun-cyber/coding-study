@@ -555,26 +555,45 @@
                 sheetName: currentSheet
             };
 
-            const params = new URLSearchParams();
-            params.append('action', 'update');
-            params.append('id', id);
-            params.append('term', term);
-            params.append('description', description);
-            params.append('sheetName', currentSheet);
+            if (currentSheet === 'Lectures') {
+                const params = new URLSearchParams();
+                params.append('action', 'update');
+                params.append('id', id);
+                params.append('term', term);
+                params.append('description', description);
+                params.append('sheetName', currentSheet);
 
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: params
-            })
-                .then(() => {
-                    alert('수정 요청을 보냈습니다!');
-                    setTimeout(loadData, 1500, currentSort);
+                fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: params
                 })
-                .catch(err => {
-                    console.error('오류:', err);
-                    alert('수정 중 오류가 발생했습니다.');
-                });
+                    .then(() => {
+                        alert('수정 요청을 보냈습니다!');
+                        setTimeout(loadData, 1500, currentSort);
+                    })
+                    .catch(err => {
+                        console.error('오류:', err);
+                        alert('수정 중 오류가 발생했습니다.');
+                    });
+            } else {
+                const url = `${API_URL}?action=update&id=${id}&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}&sheetName=${currentSheet}`;
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.status === 'success') {
+                            alert('수정되었습니다!');
+                            loadData(currentSort);
+                        } else {
+                            alert('실패: ' + (result.message || '알 수 없는 오류'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('오류:', err);
+                        alert('저장 중 오류가 발생했습니다.');
+                    });
+            }
         }
 
         // 기존 상단 수정 함수는 제거하거나 호환성을 위해 유지 (여기서는 인라인 전용으로 전환하므로 미사용)
@@ -613,27 +632,48 @@
                 sheetName: currentSheet
             };
 
-            // URLSearchParams를 사용하여 가장 안정적인 방식으로 데이터 전송
-            const params = new URLSearchParams();
-            params.append('action', 'save');
-            params.append('term', term);
-            params.append('description', description);
-            params.append('sheetName', currentSheet);
+            if (currentSheet === 'Lectures') {
+                // '강의내용'은 데이터가 길 수 있으므로 POST + 안내 메시지 사용
+                const params = new URLSearchParams();
+                params.append('action', 'save');
+                params.append('term', term);
+                params.append('description', description);
+                params.append('sheetName', currentSheet);
 
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors', // CORS 제한 없이 전송하기 위함
-                body: params
-            })
-                .then(() => {
-                    alert('데이터 등록 요청을 보냈습니다. 잠시 후 목록이 갱신됩니다!');
-                    cancelEdit();
-                    setTimeout(fetchAllData, 2000); // 전송 후 반영까지 시간을 2초로 늘림
+                fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: params
                 })
-                .catch(err => {
-                    console.error('오류:', err);
-                    alert('연결 오류가 발생했습니다. 인터넷이나 GAS 배포 상태를 확인해주세요.');
-                });
+                    .then(() => {
+                        alert('강의 내용 등록 요청을 보냈습니다. (잠시 후 목록에 나타나지 않으면 GAS 설정을 확인해주세요)');
+                        cancelEdit();
+                        setTimeout(fetchAllData, 2000);
+                    })
+                    .catch(err => {
+                        console.error('오류:', err);
+                        alert('연결 오류가 발생했습니다.');
+                    });
+            } else {
+                // 그 외 카테고리는 기존 방식(GET)으로 즉시 저장 완료 피드백 제공
+                const url = `${API_URL}?action=save&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}&sheetName=${currentSheet}`;
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.status === 'success') {
+                            alert('저장되었습니다!');
+                            cancelEdit();
+                            fetchAllData();
+                        } else {
+                            alert('저장 실패: ' + (result.message || '알 수 없는 오류'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('오류:', err);
+                        alert('저장 중 오류가 발생했습니다.');
+                    });
+            }
         }
 
         // 데이터 불러오기 (기존 호환성 유지 및 렌더링 호출)
