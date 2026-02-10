@@ -6,17 +6,30 @@ function doGet(e) {
   const sheetName = e.parameter.sheetName || 'Coding';
 
   if (action === 'loadAll') {
-    return loadAllData(); // 모든 시트 데이터를 한 번에 반환
-  } else if (action === 'load') {
-    return loadData(e.parameter.sort, sheetName);
-  } else if (action === 'save') {
-    return saveData(e.parameter.term, e.parameter.description, sheetName);
-  } else if (action === 'update') {
-    return updateData(e.parameter.id, e.parameter.term, e.parameter.description, sheetName);
+    return loadAllData();
   } else if (action === 'delete') {
     return deleteData(e.parameter.ids, sheetName);
   } else if (action === 'move') {
     return moveData(e.parameter.ids, e.parameter.sheetName, e.parameter.targetSheet);
+  } else if (action === 'load') {
+    return loadData(e.parameter.sort, sheetName);
+  }
+}
+
+// POST 요청 처리 (긴 데이터를 저장/수정할 때 사용)
+function doPost(e) {
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const action = params.action;
+    const sheetName = params.sheetName || 'Coding';
+
+    if (action === 'save') {
+      return saveData(params.term, params.description, sheetName);
+    } else if (action === 'update') {
+      return updateData(params.id, params.term, params.description, sheetName);
+    }
+  } catch (err) {
+    return createJsonResponse({ status: 'error', message: 'POST 처리 중 오류: ' + err.toString() });
   }
 }
 
