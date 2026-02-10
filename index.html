@@ -351,9 +351,9 @@
         <h2>코딩 용어 정리</h2>
 
         <div class="tabs">
-            <div class="tab active" id="tab-terms" onclick="switchTab('Terms')">Coding용어</div>
-            <div class="tab" id="tab-commands" onclick="switchTab('Commands')">프롬프트</div>
-            <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고URL</div>
+            <div class="tab active" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
+            <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
+            <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
             <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
             <div class="tab" id="tab-lectures" onclick="switchTab('Lectures')">강의내용</div>
         </div>
@@ -392,7 +392,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbw4kV5hfjBQCdlOKwAt_4EgFSa_obyP9fRsB9t_DtIWXrThHSjxO4kBQaOYE0zW6O7nBA/exec";
 
         let currentSort = 'newest';
-        let currentSheet = 'Terms'; // 현재 선택된 시트이름 (탭 상태)
+        let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
         let cachedData = null; // 모든 시트 데이터를 저장할 변수
 
         // URL을 하이퍼링크로 변환하는 함수 (프로토콜 없는 도메인 지원 버전)
@@ -467,18 +467,18 @@
             // 기본 세로 길이 (3줄)로 초기화
             descInput.rows = 3;
 
-            if (sheetName === 'Terms') {
-                document.getElementById('tab-terms').classList.add('active');
+            if (sheetName === 'Coding') {
+                document.getElementById('tab-coding').classList.add('active');
                 termInput.placeholder = '용어 (예: API, Variable)';
                 termLabel.textContent = '용어';
                 descLabel.textContent = '용어 설명';
-            } else if (sheetName === 'Commands') {
-                document.getElementById('tab-commands').classList.add('active');
+            } else if (sheetName === 'Prompt') {
+                document.getElementById('tab-prompt').classList.add('active');
                 termInput.placeholder = '프롬프트 (예: 시를 써줘, 코드 리뷰해줘)';
                 termLabel.textContent = '프롬프트';
                 descLabel.textContent = '상세 설명';
-            } else if (sheetName === 'Videos') {
-                document.getElementById('tab-videos').classList.add('active');
+            } else if (sheetName === 'URL') {
+                document.getElementById('tab-url').classList.add('active');
                 termInput.placeholder = '참고 제목 (예: 유용한 사이트)';
                 termLabel.textContent = '참고 제목';
                 descLabel.textContent = '참고 URL/설명';
@@ -583,9 +583,9 @@
 
             if (!term || !description) {
                 let typeName = '데이터';
-                if (currentSheet === 'Terms') typeName = '용어';
-                else if (currentSheet === 'Commands') typeName = '프롬프트';
-                else if (currentSheet === 'Videos') typeName = '참고 제목';
+                if (currentSheet === 'Coding') typeName = '용어';
+                else if (currentSheet === 'Prompt') typeName = '프롬프트';
+                else if (currentSheet === 'URL') typeName = '참고 제목';
                 else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
                 else if (currentSheet === 'Lectures') typeName = '강의제목';
 
@@ -641,9 +641,9 @@
 
             if (data.length === 0) {
                 let typeName = '데이터';
-                if (currentSheet === 'Terms') typeName = '용어';
-                else if (currentSheet === 'Commands') typeName = '프롬프트';
-                else if (currentSheet === 'Videos') typeName = '참고 내용';
+                if (currentSheet === 'Coding') typeName = '용어';
+                else if (currentSheet === 'Prompt') typeName = '프롬프트';
+                else if (currentSheet === 'URL') typeName = '참고 내용';
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
                 else if (currentSheet === 'Lectures') typeName = '강의 내용';
 
@@ -734,9 +734,9 @@
             }
 
             const menuMap = {
-                '1': 'Terms',
-                '2': 'Commands',
-                '3': 'Videos',
+                '1': 'Coding',
+                '2': 'Prompt',
+                '3': 'URL',
                 '4': 'Ideas',
                 '5': 'Lectures'
             };

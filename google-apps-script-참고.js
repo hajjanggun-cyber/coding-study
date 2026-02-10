@@ -3,7 +3,7 @@
 
 function doGet(e) {
   const action = e.parameter.action;
-  const sheetName = e.parameter.sheetName || 'Terms';
+  const sheetName = e.parameter.sheetName || 'Coding';
 
   if (action === 'loadAll') {
     return loadAllData(); // 모든 시트 데이터를 한 번에 반환
@@ -22,7 +22,7 @@ function doGet(e) {
 
 // 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
 function loadAllData() {
-  const sheets = ['Terms', 'Commands', 'Videos', 'Ideas', 'Lectures'];
+  const sheets = ['Coding', 'Prompt', 'URL', 'Ideas', 'Lectures'];
   const result = {};
 
   sheets.forEach(name => {
