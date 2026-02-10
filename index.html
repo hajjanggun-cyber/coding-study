@@ -516,52 +516,53 @@
     <div class="container">
         <h2>코딩 용어 정리</h2>
 
-        <div class="tab" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
-        <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
-        <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
-        <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
-        <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
-        <div class="tab" id="tab-jungri" onclick="switchTab('Jungri')">강의정리</div>
-    </div>
-
-    <div class="input-box">
-        <div class="input-row">
-            <div class="label">용어</div>
-            <input type="text" id="term" placeholder="용어">
+        <div class="tabs">
+            <div class="tab active" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
+            <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
+            <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
+            <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
+            <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
+            <div class="tab" id="tab-jungri" onclick="switchTab('Jungri')">강의정리</div>
         </div>
 
-        <!-- 카테고리 이동 모달 -->
-        <div id="moveModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-title">이동할 카테고리를 선택하세요</div>
-                <div class="category-buttons" id="categoryButtons">
-                    <!-- 버튼들이 동적으로 추가됩니다 -->
+        <div class="input-box">
+            <div class="input-row">
+                <div class="label">용어</div>
+                <input type="text" id="term" placeholder="용어">
+            </div>
+
+            <!-- 카테고리 이동 모달 -->
+            <div id="moveModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-title">이동할 카테고리를 선택하세요</div>
+                    <div class="category-buttons" id="categoryButtons">
+                        <!-- 버튼들이 동적으로 추가됩니다 -->
+                    </div>
+                    <button class="modal-close" onclick="closeMoveModal()">취소</button>
                 </div>
-                <button class="modal-close" onclick="closeMoveModal()">취소</button>
+            </div>
+            <div class="input-row" style="border:none;">
+                <div class="label">용어 설명</div>
+                <textarea id="description" rows="3"></textarea>
+            </div>
+            <button id="btn-save" class="save-btn" onclick="saveData()">데이터 등록</button>
+            <button id="btn-cancel" class="edit-cancel-btn" onclick="cancelEdit()">수정 취소</button>
+        </div>
+
+        <div class="controls">
+            <div style="display: flex; align-items: center;">
+                <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
+                <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
+                <button class="move-btn" onclick="moveSelected()">선택 이동</button>
+            </div>
+            <div>
+                <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
+                <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
             </div>
         </div>
-        <div class="input-row" style="border:none;">
-            <div class="label">용어 설명</div>
-            <textarea id="description" rows="3"></textarea>
-        </div>
-        <button id="btn-save" class="save-btn" onclick="saveData()">데이터 등록</button>
-        <button id="btn-cancel" class="edit-cancel-btn" onclick="cancelEdit()">수정 취소</button>
-    </div>
 
-    <div class="controls">
-        <div style="display: flex; align-items: center;">
-            <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
-            <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
-            <button class="move-btn" onclick="moveSelected()">선택 이동</button>
+        <div id="list-container">
         </div>
-        <div>
-            <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
-            <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
-        </div>
-    </div>
-
-    <div id="list-container">
-    </div>
     </div>
 
     <script>
