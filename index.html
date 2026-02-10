@@ -731,8 +731,21 @@
             const isEditing = card.classList.contains('editing');
 
             if (isEditing) {
-                // 수정 취소 (데이터 다시 로드하여 원복)
-                loadData(currentSort);
+                // 수정 취소 (캐시에서 원본 데이터 복원)
+                const id = card.getAttribute('data-id');
+                if (cachedData && cachedData[currentSheet]) {
+                    const item = cachedData[currentSheet].find(item => String(item.id) === String(id));
+                    if (item) {
+                        const termDiv = card.querySelector('.card-term');
+                        const descDiv = card.querySelector('.card-desc');
+                        termDiv.textContent = item.term;
+                        descDiv.innerHTML = linkify(item.description);
+
+                        const actionsDiv = card.querySelector('.card-actions');
+                        actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
+                        card.classList.remove('editing');
+                    }
+                }
             } else {
                 // 다른 모든 수정 모드 해제 (동시 수정 방지)
                 document.querySelectorAll('.card.editing').forEach(c => c.classList.remove('editing'));
@@ -767,11 +780,6 @@
                     <button class="inline-cancel-btn" onclick="toggleInlineEdit('${id}')">취소</button>
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
-
-                // 수정 모드로 전환 후 카드 위치로 스크롤
-                setTimeout(() => {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
             }
         }
 
