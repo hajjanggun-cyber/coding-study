@@ -271,6 +271,33 @@
             min-width: 200px;
         }
 
+        /* 수정 모드일 때 카드 컨텐트를 세로 배치로 변경 */
+        .card.editing .card-content {
+            display: flex;
+            flex-direction: column;
+            /* 제목과 내용을 세로로 배치 */
+            align-items: stretch;
+            /* 전체 너비 사용 */
+            width: 100%;
+        }
+
+        /* 수정 모드일 때 내용 textarea가 전체 너비 사용 */
+        .card.editing .card-desc,
+        .card.editing .card-desc .inline-textarea {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box;
+        }
+
+        /* 수정 모드일 때 제목 영역도 전체 너비 사용 */
+        .card.editing .card-term {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-right: 0;
+            margin-bottom: 10px;
+            /* 제목과 내용 사이 간격 */
+        }
+
         .card-desc {
             flex: 1;
             color: #444;
