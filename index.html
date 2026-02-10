@@ -48,7 +48,8 @@
 
         .input-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            /* 상단 정렬로 변경 (textarea 확장 대응) */
             margin-bottom: 15px;
             border-bottom: 1px solid #f0f0f0;
             padding-bottom: 15px;
@@ -59,11 +60,19 @@
             font-weight: bold;
             color: #555;
             font-size: 15px;
+            padding-top: 10px;
+            /* input/textarea와 높이 맞춤 */
+            flex-shrink: 0;
+            /* 라벨 너비 고정 */
         }
 
         input,
         textarea {
             flex: 1;
+            width: 100%;
+            /* 너비 꽉 채우기 */
+            box-sizing: border-box;
+            /* 패딩 포함 너비 계산 */
             padding: 10px;
             border: 1px solid #ccc;
             background: #fafafa;
@@ -435,6 +444,45 @@
                 margin-bottom: 8px;
             }
 
+            /* 컨트롤 버튼 모바일 최적화 */
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .controls>div {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .select-btn,
+            .delete-btn,
+            .move-btn {
+                flex: 1;
+                margin: 0 2px;
+                padding: 8px 0;
+                /* 좌우 패딩 제거 후 중앙 정렬 */
+                text-align: center;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .select-btn {
+                margin-left: 0;
+            }
+
+            .move-btn {
+                margin-right: 0;
+            }
+
+            .sort-btn {
+                flex: 1;
+                text-align: center;
+                margin: 0 2px;
+            }
+
             /* 리스트 카드 수직 배치 */
             .card-content {
                 display: block;
@@ -722,12 +770,8 @@
             document.getElementById('term').value = '';
             document.getElementById('description').value = '';
 
-            // 성능 최적화: 서버 호출 없이 캐시된 데이터로 즉시 렌더링
-            if (cachedData) {
-                renderCurrentSheet();
-            } else {
-                fetchAllData();
-            }
+            // 렌더링은 위에서 이미 분기 처리되었으므로 중복 호출 제거
+            // (상단 if/else 블록에서 이미 처리됨)
         }
 
         // 인라인 수정 모드 토글
@@ -926,6 +970,7 @@
 
         // 데이터 저장 (새 데이터 등록 전용)
         function saveData() {
+            console.log('saveData 호출됨, 현재 시트:', currentSheet);
             const term = document.getElementById('term').value.trim();
             const description = document.getElementById('description').value.trim();
 
