@@ -127,6 +127,8 @@
             border-radius: 4px;
             resize: vertical;
             font-family: inherit;
+            scroll-margin-top: 100px;
+            /* 포커스 시 자동 스크롤 방지 */
         }
 
         .inline-input {
@@ -780,6 +782,17 @@
                     <button class="inline-cancel-btn" onclick="toggleInlineEdit('${id}')">취소</button>
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
+
+                // 포커스 시 자동 스크롤 방지
+                const editFields = card.querySelectorAll('.inline-input, .inline-textarea');
+                editFields.forEach(field => {
+                    field.addEventListener('focus', function (e) {
+                        const scrollY = window.scrollY;
+                        setTimeout(() => {
+                            window.scrollTo(0, scrollY);
+                        }, 0);
+                    }, { once: true });
+                });
             }
         }
 
