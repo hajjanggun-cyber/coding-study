@@ -51,10 +51,11 @@ function doPost(e) {
 
 // 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
 function loadAllData() {
-  const sheets = ['Coding', 'Prompt', 'URL', 'Ideas', 'Lectures'];
+  // 유효한 시트 이름 목록
+  const VALID_SHEETS = ['Coding', 'Prompt', 'URL', 'Ideas', 'Lectures', 'WorkProcess'];
   const result = {};
 
-  sheets.forEach(name => {
+  VALID_SHEETS.forEach(name => {
     const sheet = getSheet(name);
     const data = sheet.getDataRange().getValues();
     if (data.length <= 1) {
