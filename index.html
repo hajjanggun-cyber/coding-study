@@ -254,6 +254,81 @@
             color: #0056b3;
         }
 
+        /* 카테고리 이동 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .category-btn {
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #003366;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background: #003366;
+            color: white;
+            border-color: #003366;
+        }
+
+        .modal-close {
+            margin-top: 15px;
+            background: #999;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            background: #666;
+        }
+
         /* 하이퍼링크 스타일 */
         .card-desc a {
             color: #003366 !important;
@@ -385,6 +460,17 @@
             <div class="input-row">
                 <div class="label">용어</div>
                 <input type="text" id="term" placeholder="용어">
+            </div>
+
+            <!-- 카테고리 이동 모달 -->
+            <div id="moveModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-title">이동할 카테고리를 선택하세요</div>
+                    <div class="category-buttons" id="categoryButtons">
+                        <!-- 버튼들이 동적으로 추가됩니다 -->
+                    </div>
+                    <button class="modal-close" onclick="closeMoveModal()">취소</button>
+                </div>
             </div>
             <div class="input-row" style="border:none;">
                 <div class="label">용어 설명</div>
@@ -821,47 +907,64 @@
             // 강의내용은 다른 카테고리와 분리 (서로 이동 불가)
             const isCurrentLectures = currentSheet === 'Lectures';
 
-            let menuMap, menuText;
-
             if (isCurrentLectures) {
-                // 강의내용에서는 강의내용으로만 이동 가능 (실질적으로 이동 불가)
                 alert('강의내용은 다른 카테고리로 이동할 수 없습니다.');
                 return;
-            } else {
-                // 다른 카테고리에서는 강의내용을 제외한 카테고리로만 이동 가능
-                menuMap = {
-                    '1': 'Coding',
-                    '2': 'Prompt',
-                    '3': 'URL',
-                    '4': 'Ideas'
-                };
-                menuText = `선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n\n(번호를 입력해주세요)`;
             }
 
-            const targetNum = prompt(menuText);
+            // 모달 열기
+            window.selectedCheckboxes = checkboxes;
+            showMoveModal();
 
-            if (!targetNum) return;
+        }
 
-            const targetSheet = menuMap[targetNum.trim()];
-            if (!targetSheet) {
-                alert('올바른 번호를 입력해주세요.');
-                return;
-            }
+        // 모달 열기
+        function showMoveModal() {
+            const modal = document.getElementById('moveModal');
+            const buttonsContainer = document.getElementById('categoryButtons');
 
-            if (targetSheet === currentSheet) {
-                alert('현재와 같은 카테고리로는 이동할 수 없습니다.');
-                return;
-            }
+            // 버튼 생성 (강의내용 제외)
+            const categories = [
+                { name: 'Coding', label: 'Coding용어' },
+                { name: 'Prompt', label: '프롬프트' },
+                { name: 'URL', label: '참고URL' },
+                { name: 'Ideas', label: '아이디어' }
+            ];
 
+            buttonsContainer.innerHTML = '';
+            categories.forEach(cat => {
+                if (cat.name !== currentSheet) {
+                    const btn = document.createElement('button');
+                    btn.className = 'category-btn';
+                    btn.textContent = cat.label;
+                    btn.onclick = () => executeMoveToCategory(cat.name);
+                    buttonsContainer.appendChild(btn);
+                }
+            });
+
+            modal.classList.add('active');
+        }
+
+        // 모달 닫기
+        function closeMoveModal() {
+            const modal = document.getElementById('moveModal');
+            modal.classList.remove('active');
+        }
+
+        // 실제 이동 실행
+        function executeMoveToCategory(targetSheet) {
+            closeMoveModal();
+
+            const checkboxes = window.selectedCheckboxes;
             const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${normalizedTarget}`;
+            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(result => {
                     if (result.status === 'success') {
                         alert(result.message || '이동되었습니다!');
-                        fetchAllData(); // 전체 데이터 다시 로드 및 화면 갱신
+                        fetchAllData();
                     } else {
                         alert('이동 실패: ' + (result.message || '알 수 없는 오류'));
                     }
