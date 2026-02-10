@@ -881,6 +881,54 @@
                 // 다른 모든 수정 모드 해제 (동시 수정 방지)
                 document.querySelectorAll('.card.editing').forEach(c => c.classList.remove('editing'));
 
+                // 수정 모드 해제 시에는 캐시된 데이터를 기반으로 다시 그리는 것이 안전함
+                // 하지만 여기서는 단순 토글이므로 요소를 찾는데 집중
+
+                // 1. 만약 이미 수정 중이었다면 (취소 버튼 클릭), 원래 뷰로 복구해야 함
+                // 가장 쉬운 방법은 해당 카드를 캐시 데이터로 다시 렌더링하는 것
+                if (card.classList.contains('editing')) {
+                    const item = cachedData[currentSheet].find(i => String(i.id) === String(id));
+                    if (item) {
+                        // 카드 내용 전체를 다시 그리기 (접기/펼치기 상태 초기화됨)
+                        // 기존 카드 교체 방식
+                        const tempContainer = document.createElement('div');
+
+                        // 카드 내용 재구성 (renderCurrentSheet 로직 일부 재사용)
+                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+                        const description = linkify(item.description);
+                        const descriptionText = String(item.description || '');
+                        const lines = descriptionText.split('\n');
+                        const isLongContent = lines.length > 1;
+
+                        let descHtml = '';
+                        if (isLecture && isLongContent) {
+                            descHtml = `
+                                <div>
+                                    <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                                    <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                                </div>
+                            `;
+                        } else {
+                            descHtml = `<div class="card-desc">${description}</div>`;
+                        }
+
+                        card.innerHTML = `
+                            <input type="checkbox" class="chk-box" data-id="${item.id}">
+                            <div class="card-content">
+                                <div class="card-term">${item.term}</div>
+                                ${descHtml}
+                            </div>
+                            <div class="card-actions">
+                                <button class="edit-btn" onclick="toggleInlineEdit('${item.id}')">수정</button>
+                            </div>`;
+
+                        card.classList.remove('editing');
+                        return; // 함수 종료
+                    }
+                }
+
+                // --- 수정 모드 진입 로직 ---
+
                 const termDiv = card.querySelector('.card-term');
                 let descDiv = card.querySelector('.card-desc');
                 const currentTerm = termDiv.textContent;
@@ -893,15 +941,23 @@
                     descDiv = cardContent.querySelector('.card-desc');
                     if (descDiv) {
                         descParent = descDiv.parentElement;
+                        currentDescText = descDiv.textContent; // 텍스트 저장
                     }
                 } else {
-                    // descDiv의 부모가 card-content가 아니면 (즉, wrapper div가 있으면)
+                    // descDiv는 있지만 부모가 card-content가 아닌 경우 (wrapper 존재)
                     if (descDiv.parentElement && !descDiv.parentElement.classList.contains('card-content')) {
                         descParent = descDiv.parentElement;
                     }
+                    currentDescText = descDiv.textContent;
                 }
 
-                const currentDesc = descDiv ? descDiv.textContent : '';
+                // card-desc 요소를 찾지 못했다면 (이미 수정 모드이거나 구조 문제) 리턴
+                if (!descDiv && !descParent) {
+                    console.error("설명 요소를 찾을 수 없습니다.");
+                    return;
+                }
+
+                const currentDesc = currentDescText || (descDiv ? descDiv.textContent : '');
 
                 card.classList.add('editing');
 
@@ -912,13 +968,11 @@
                 termDiv.innerHTML = `<textarea class="inline-textarea" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentTerm}</textarea>`;
 
                 // 내용 수정 창도 동일하게 처리
-                const descTextareaHtml = `<textarea class="inline-textarea" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentDesc}</textarea>`;
-
-                // descParent가 있으면 (접기/펼치기 구조) 부모에 설정, 없으면 descDiv에 직접 설정
+                // descParent가 있으면 (접기/펼치기 구조) 전체를 textarea로 교체하되, 나중에 복원을 위해 식별자 유지
                 if (descParent) {
-                    descParent.innerHTML = descTextareaHtml;
+                    descParent.innerHTML = `<textarea class="inline-textarea card-desc-edit" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentDesc}</textarea>`;
                 } else {
-                    descDiv.innerHTML = descTextareaHtml;
+                    descDiv.innerHTML = `<textarea class="inline-textarea" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentDesc}</textarea>`;
                 }
 
                 const actionsDiv = card.querySelector('.card-actions');
@@ -964,12 +1018,21 @@
         function saveInlineEdit(id) {
             const card = document.querySelector(`.card[data-id="${id}"]`);
 
-            // 제목은 input 또는 textarea일 수 있음
-            const termInput = card.querySelector('.inline-input');
+            // 제목은 textarea (인라인 수정 모드)
             const termTextarea = card.querySelector('.card-term .inline-textarea');
-            const term = termInput ? termInput.value.trim() : termTextarea.value.trim();
+            const term = termTextarea ? termTextarea.value.trim() : '';
 
-            const description = card.querySelector('.card-desc .inline-textarea').value.trim();
+            // 내용은 두 번째 textarea 찾기 (card-desc 클래스가 수정 모드에서 사라질 수 있으므로)
+            // 첫 번째는 제목, 두 번째는 내용
+            const allTextareas = card.querySelectorAll('.inline-textarea');
+            let description = '';
+            if (allTextareas.length >= 2) {
+                description = allTextareas[1].value.trim();
+            } else {
+                // 기존 방식 시도
+                const descInput = card.querySelector('.inline-textarea.card-desc-edit') || card.querySelector('.card-desc .inline-textarea');
+                description = descInput ? descInput.value.trim() : '';
+            }
 
             if (!term || !description) {
                 alert('내용을 입력해주세요.');
@@ -987,7 +1050,10 @@
 
             // 즉시 UI 업데이트
             const termDiv = card.querySelector('.card-term');
-            const descDiv = card.querySelector('.card-desc');
+            let descDiv = card.querySelector('.card-desc');
+
+            // descDiv가 없으면(접기모드에서 수정 시 교체됨), wrapper 안에서 새로 생성해야 할 수 있음
+            // 하지만 toggleInlineEdit를 호출하면 다시 렌더링되므로 여기서는 데이터만 준비하면 됨
             if (termDiv) termDiv.textContent = term;
 
             // 강의정리/실전과정은 접기/펼치기 구조 복원
