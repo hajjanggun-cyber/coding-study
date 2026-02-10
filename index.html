@@ -141,6 +141,13 @@
             font-family: inherit;
             scroll-margin-top: 100px;
             /* 포커스 시 자동 스크롤 방지 */
+            overflow: hidden;
+            /* 스크롤바 숨김 (높이 자동 조절 사용) */
+            min-height: 40px;
+            white-space: pre-wrap;
+            /* 줄바꿈 허용 */
+            word-break: break-word;
+            /* 긴 단어 줄바꿈 */
         }
 
         .inline-input {
@@ -247,6 +254,21 @@
             margin-right: 20px;
             flex-shrink: 0;
             word-break: keep-all;
+        }
+
+        /* 수정 모드일 때 제목 영역이 확장 가능하도록 설정 */
+        .card.editing .card-term {
+            width: auto;
+            min-width: 200px;
+            max-width: 100%;
+            flex-shrink: 1;
+        }
+
+        /* 제목 textarea가 부모 너비를 따르도록 설정 */
+        .card-term .inline-textarea {
+            width: 100% !important;
+            box-sizing: border-box;
+            min-width: 200px;
         }
 
         .card-desc {
@@ -840,27 +862,20 @@
 
                 card.classList.add('editing');
 
-                // 강의정리/실전과정은 제목도 textarea로 표시 (긴 제목 지원)
-                if (currentSheet === 'Jungri' || currentSheet === 'WorkProcess') {
-                    const termLines = currentTerm.split('\n').length;
-                    const termRows = Math.max(2, Math.min(termLines + 1, 5)); // 최소 2줄, 최대 5줄
-                    termDiv.innerHTML = `<textarea class="inline-textarea" rows="${termRows}">${currentTerm}</textarea>`;
-                } else {
-                    termDiv.innerHTML = `<input type="text" class="inline-input" value="${currentTerm.replace(/"/g, '&quot;')}">`;
-                }
+                // 모든 카테고리에서 제목을 textarea로 표시 (긴 제목 지원 및 전체 표시)
+                // 모든 카테고리에서 제목을 textarea로 표시 (긴 제목 지원 및 전체 표시)
+                // 초기에는 rows를 적당히 주고, 렌더링 후 scrollHeight로 자동 조절
+                // style에 white-space: pre-wrap; word-break: break-word; 추가하여 줄바꿈 강제
+                termDiv.innerHTML = `<textarea class="inline-textarea" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentTerm}</textarea>`;
 
-                // 내용의 줄 수를 계산하여 textarea 높이 자동 조정
-                const lines = currentDesc.split('\n').length;
-                const minRows = (currentSheet === 'Jungri' || currentSheet === 'WorkProcess') ? 10 : 3;
-                const calculatedRows = Math.max(minRows, lines + 2); // 여유 공간 2줄 추가
-                const maxRows = 50; // 최대 50줄
-                const textareaRows = Math.min(calculatedRows, maxRows);
+                // 내용 수정 창도 동일하게 처리
+                const descTextareaHtml = `<textarea class="inline-textarea" rows="1" style="overflow-y:hidden; resize:none; white-space: pre-wrap; word-break: break-word;">${currentDesc}</textarea>`;
 
                 // descParent가 있으면 (접기/펼치기 구조) 부모에 설정, 없으면 descDiv에 직접 설정
                 if (descParent) {
-                    descParent.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
+                    descParent.innerHTML = descTextareaHtml;
                 } else {
-                    descDiv.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
+                    descDiv.innerHTML = descTextareaHtml;
                 }
 
                 const actionsDiv = card.querySelector('.card-actions');
@@ -869,9 +884,29 @@
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
 
-                // 포커스 시 자동 스크롤 방지
-                const editFields = card.querySelectorAll('.inline-input, .inline-textarea');
+                // 자동 높이 조절 함수
+                const autoResize = (el) => {
+                    el.style.height = 'auto'; // 높이 초기화 후 재계산
+                    el.style.height = (el.scrollHeight + 2) + 'px'; // +2px 여유
+                };
+
+                // 생성된 textarea들에 대해 높이 자동 조절 적용
+                const editFields = card.querySelectorAll('.inline-textarea');
+
+                // 렌더링 후 높이를 계산하도록 충분한 지연 시간 부여
+                setTimeout(() => {
+                    editFields.forEach(field => {
+                        autoResize(field);
+                    });
+                }, 50); // 지연 시간을 50ms로 증가
+
                 editFields.forEach(field => {
+                    // 입력 시 자동 조절
+                    field.addEventListener('input', function () {
+                        autoResize(this);
+                    });
+
+                    // 포커스 시 자동 스크롤 방지
                     field.addEventListener('focus', function (e) {
                         const scrollY = window.scrollY;
                         setTimeout(() => {
