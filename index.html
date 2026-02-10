@@ -389,7 +389,7 @@
 
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbwNOdl-7WSoyKr5iAiM2FmULruFkCCzcPGMGfIX7VN5ViFoiiqJbhZp-u3ioe-F43P1Nw/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwagqCSAenGdgkb_yUb0_fw_G5_HIOMe7aOjBvaZQZ7uomyTffiDqyfuxV99Q0EwDC7DA/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -555,21 +555,25 @@
                 sheetName: currentSheet
             };
 
+            const params = new URLSearchParams();
+            params.append('action', 'update');
+            params.append('id', id);
+            params.append('term', term);
+            params.append('description', description);
+            params.append('sheetName', currentSheet);
+
             fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify(payload)
+                body: params
             })
                 .then(() => {
-                    alert('수정 요청을 보냈습니다.');
-                    setTimeout(loadData, 1000, currentSort);
+                    alert('수정 요청을 보냈습니다!');
+                    setTimeout(loadData, 1500, currentSort);
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('수정 중 오류가 발생했습니다: ' + err.message);
+                    alert('수정 중 오류가 발생했습니다.');
                 });
         }
 
@@ -609,23 +613,26 @@
                 sheetName: currentSheet
             };
 
+            // URLSearchParams를 사용하여 가장 안정적인 방식으로 데이터 전송
+            const params = new URLSearchParams();
+            params.append('action', 'save');
+            params.append('term', term);
+            params.append('description', description);
+            params.append('sheetName', currentSheet);
+
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // CORS 문제를 피하기 위한 설정
-                headers: {
-                    'Content-Type': 'text/plain'
-                },
-                body: JSON.stringify(payload)
+                mode: 'no-cors', // CORS 제한 없이 전송하기 위함
+                body: params
             })
                 .then(() => {
-                    // no-cors 모드에서는 응답 확인이 어려우므로 성공으로 간주하고 새로고침
-                    alert('데이터 등록 요청을 보냈습니다. (잠시 후 목록에 나타나지 않으면 GAS 설정을 확인해주세요)');
+                    alert('데이터 등록 요청을 보냈습니다. 잠시 후 목록이 갱신됩니다!');
                     cancelEdit();
-                    setTimeout(fetchAllData, 1500); // 1.5초 후 갱신
+                    setTimeout(fetchAllData, 2000); // 전송 후 반영까지 시간을 2초로 늘림
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('연결 오류: ' + err.message + '\n\n인터넷 연결이나 GAS 배포 상태를 확인해주세요.');
+                    alert('연결 오류가 발생했습니다. 인터넷이나 GAS 배포 상태를 확인해주세요.');
                 });
         }
 
