@@ -231,6 +231,29 @@
             line-height: 1.5;
         }
 
+        /* 접기/펼치기 기능 */
+        .card-desc.collapsed {
+            max-height: 1.5em;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #003366;
+            cursor: pointer;
+            font-size: 9pt;
+            padding: 2px 5px;
+            margin-left: 5px;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .toggle-btn:hover {
+            color: #0056b3;
+        }
+
         /* 하이퍼링크 스타일 */
         .card-desc a {
             color: #003366 !important;
@@ -689,17 +712,50 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
+
+                // 강의내용 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
+                const isLecture = currentSheet === 'Lectures';
+                const description = linkify(item.description);
+                const lines = item.description.split('\n');
+                const isLongContent = lines.length > 1;
+
+                let descHtml = '';
+                if (isLecture && isLongContent) {
+                    descHtml = `
+                        <div>
+                            <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                            <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                        </div>
+                    `;
+                } else {
+                    descHtml = `<div class="card-desc">${description}</div>`;
+                }
+
                 card.innerHTML = `
                     <input type="checkbox" class="chk-box" data-id="${item.id}">
                     <div class="card-content">
                         <div class="card-term">${item.term}</div>
-                        <div class="card-desc">${linkify(item.description)}</div>
+                        ${descHtml}
                     </div>
                     <div class="card-actions">
                         <button class="edit-btn" onclick="toggleInlineEdit('${item.id}')">수정</button>
                     </div>`;
                 container.appendChild(card);
             });
+        }
+
+        // 강의 내용 접기/펼치기 토글
+        function toggleContent(id) {
+            const descElement = document.getElementById(`desc-${id}`);
+            const button = event.target;
+
+            if (descElement.classList.contains('collapsed')) {
+                descElement.classList.remove('collapsed');
+                button.textContent = '접기 ▲';
+            } else {
+                descElement.classList.add('collapsed');
+                button.textContent = '더보기 ▼';
+            }
         }
 
         // 전체 선택 / 해제
