@@ -741,7 +741,24 @@
                         const termDiv = card.querySelector('.card-term');
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
-                        descDiv.innerHTML = linkify(item.description);
+
+                        // 강의내용/실전과정은 접기/펼치기 구조 복원
+                        const isLecture = currentSheet === 'Lectures' || currentSheet === 'WorkProcess';
+                        const description = linkify(item.description);
+                        const descriptionText = String(item.description || '');
+                        const lines = descriptionText.split('\n');
+                        const isLongContent = lines.length > 1;
+
+                        if (isLecture && isLongContent) {
+                            // 부모 div 찾기
+                            const parentDiv = descDiv.parentElement;
+                            parentDiv.innerHTML = `
+                                <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                                <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                            `;
+                        } else {
+                            descDiv.innerHTML = description;
+                        }
 
                         const actionsDiv = card.querySelector('.card-actions');
                         actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
@@ -825,7 +842,23 @@
             const termDiv = card.querySelector('.card-term');
             const descDiv = card.querySelector('.card-desc');
             if (termDiv) termDiv.textContent = term;
-            if (descDiv) descDiv.innerHTML = linkify(description);
+
+            // 강의내용/실전과정은 접기/펼치기 구조 복원
+            const isLecture = currentSheet === 'Lectures' || currentSheet === 'WorkProcess';
+            const linkedDescription = linkify(description);
+            const lines = description.split('\n');
+            const isLongContent = lines.length > 1;
+
+            if (isLecture && isLongContent) {
+                // 부모 div 찾기
+                const parentDiv = descDiv.parentElement;
+                parentDiv.innerHTML = `
+                    <div class="card-desc collapsed" id="desc-${id}">${linkedDescription}</div>
+                    <button class="toggle-btn" onclick="toggleContent('${id}')">더보기 ▼</button>
+                `;
+            } else {
+                if (descDiv) descDiv.innerHTML = linkedDescription;
+            }
 
             // 편집 모드 즉시 종료 (toggleInlineEdit 대신 직접 처리)
             const actionsDiv = card.querySelector('.card-actions');
