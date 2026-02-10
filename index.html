@@ -767,6 +767,11 @@
                     <button class="inline-cancel-btn" onclick="toggleInlineEdit('${id}')">취소</button>
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
+
+                // 수정 모드로 전환 후 카드 위치로 스크롤
+                setTimeout(() => {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
             }
         }
 
