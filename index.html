@@ -875,7 +875,7 @@
 
             // 즉시 UI에서 제거 (속도 개선)
             ids.forEach(id => {
-                const card = document.querySelector(`[data-id="${id}"]`);
+                const card = document.querySelector(`.card[data-id="${id}"]`);
                 if (card) card.remove();
             });
 
@@ -966,7 +966,7 @@
 
             // 즉시 UI에서 제거 (속도 개선)
             ids.forEach(id => {
-                const card = document.querySelector(`[data-id="${id}"]`);
+                const card = document.querySelector(`.card[data-id="${id}"]`);
                 if (card) card.remove();
             });
 
