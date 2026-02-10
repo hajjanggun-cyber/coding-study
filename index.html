@@ -115,11 +115,12 @@
 
         .inline-input,
         .inline-textarea {
-            width: 95%;
-            padding: 5px;
-            margin-bottom: 5px;
-            border: 1px solid #5bc0de;
+            width: 100%;
+            padding: 8px;
             font-size: 10pt;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
             font-family: inherit;
         }
 
@@ -732,7 +733,10 @@
 
                 card.classList.add('editing');
                 termDiv.innerHTML = `<input type="text" class="inline-input" value="${currentTerm.replace(/"/g, '&quot;')}">`;
-                descDiv.innerHTML = `<textarea class="inline-textarea" rows="3">${currentDesc}</textarea>`;
+
+                // 강의내용/작업과정은 큰 textarea 사용
+                const textareaRows = (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') ? 20 : 3;
+                descDiv.innerHTML = `<textarea class="inline-textarea" rows="${textareaRows}">${currentDesc}</textarea>`;
 
                 const actionsDiv = card.querySelector('.card-actions');
                 actionsDiv.innerHTML = `
