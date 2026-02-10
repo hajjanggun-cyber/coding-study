@@ -1144,10 +1144,13 @@
                 const movedItems = cachedData[currentSheet].filter(item => ids.includes(String(item.id)));
                 cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
 
-                // 대상 시트에 추가
-                if (cachedData[targetSheet]) {
-                    cachedData[targetSheet] = [...cachedData[targetSheet], ...movedItems];
+                // 대상 시트 캐시 초기화 (없으면 빈 배열로 생성)
+                if (!cachedData[targetSheet]) {
+                    cachedData[targetSheet] = [];
                 }
+
+                // 대상 시트에 추가
+                cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
             }
 
             // 백그라운드에서 서버 동기화
