@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>코딩 용어 정리</title>
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -513,58 +516,57 @@
     <div class="container">
         <h2>코딩 용어 정리</h2>
 
-        <div class="tabs">
-            <div class="tab active" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
-            <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
-            <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
-            <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
-            <div class="tab" id="tab-lectures" onclick="switchTab('Lectures')">강의내용</div>
-            <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
+        <div class="tab" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
+        <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
+        <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
+        <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
+        <div class="tab" id="tab-lecstudy" onclick="switchTab('LecStudy')">강의내용</div>
+        <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
+    </div>
+
+    <div class="input-box">
+        <div class="input-row">
+            <div class="label">용어</div>
+            <input type="text" id="term" placeholder="용어">
         </div>
 
-        <div class="input-box">
-            <div class="input-row">
-                <div class="label">용어</div>
-                <input type="text" id="term" placeholder="용어">
-            </div>
-
-            <!-- 카테고리 이동 모달 -->
-            <div id="moveModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-title">이동할 카테고리를 선택하세요</div>
-                    <div class="category-buttons" id="categoryButtons">
-                        <!-- 버튼들이 동적으로 추가됩니다 -->
-                    </div>
-                    <button class="modal-close" onclick="closeMoveModal()">취소</button>
+        <!-- 카테고리 이동 모달 -->
+        <div id="moveModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-title">이동할 카테고리를 선택하세요</div>
+                <div class="category-buttons" id="categoryButtons">
+                    <!-- 버튼들이 동적으로 추가됩니다 -->
                 </div>
+                <button class="modal-close" onclick="closeMoveModal()">취소</button>
             </div>
-            <div class="input-row" style="border:none;">
-                <div class="label">용어 설명</div>
-                <textarea id="description" rows="3"></textarea>
-            </div>
-            <button id="btn-save" class="save-btn" onclick="saveData()">데이터 등록</button>
-            <button id="btn-cancel" class="edit-cancel-btn" onclick="cancelEdit()">수정 취소</button>
         </div>
+        <div class="input-row" style="border:none;">
+            <div class="label">용어 설명</div>
+            <textarea id="description" rows="3"></textarea>
+        </div>
+        <button id="btn-save" class="save-btn" onclick="saveData()">데이터 등록</button>
+        <button id="btn-cancel" class="edit-cancel-btn" onclick="cancelEdit()">수정 취소</button>
+    </div>
 
-        <div class="controls">
-            <div style="display: flex; align-items: center;">
-                <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
-                <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
-                <button class="move-btn" onclick="moveSelected()">선택 이동</button>
-            </div>
-            <div>
-                <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
-                <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
-            </div>
+    <div class="controls">
+        <div style="display: flex; align-items: center;">
+            <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
+            <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
+            <button class="move-btn" onclick="moveSelected()">선택 이동</button>
         </div>
+        <div>
+            <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
+            <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
+        </div>
+    </div>
 
-        <div id="list-container">
-        </div>
+    <div id="list-container">
+    </div>
     </div>
 
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbzD_dKvj4uUPSM4LByn3MTW54UOf7qoj-FnzeoEZwZpV5phsZ6jZVxPq6kw9MxSX_RQ_A/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbytOZI8pd9lWEmbapp-2hbVRew4jvvCsI3ZVL-UydDH5TNjD5sLmJIxt8Suke_2UfqF/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -701,8 +703,8 @@
                 termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
                 termLabel.textContent = '아이디어 제목';
                 descLabel.textContent = '아이디어 상세 내용';
-            } else if (sheetName === 'Lectures') {
-                document.getElementById('tab-lectures').classList.add('active');
+            } else if (sheetName === 'LecStudy') {
+                document.getElementById('tab-lecstudy').classList.add('active');
                 termInput.placeholder = '강의제목 (예: React 기초 강의)';
                 termLabel.textContent = '강의제목';
                 descLabel.textContent = '강의 내용';
@@ -743,7 +745,7 @@
                         termDiv.textContent = item.term;
 
                         // 강의내용/실전과정은 접기/펼치기 구조 복원
-                        const isLecture = currentSheet === 'Lectures' || currentSheet === 'WorkProcess';
+                        const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -794,7 +796,7 @@
                 card.classList.add('editing');
 
                 // 강의내용/실전과정은 제목도 textarea로 표시 (긴 제목 지원)
-                if (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') {
+                if (currentSheet === 'LecStudy' || currentSheet === 'WorkProcess') {
                     const termLines = currentTerm.split('\n').length;
                     const termRows = Math.max(2, Math.min(termLines + 1, 5)); // 최소 2줄, 최대 5줄
                     termDiv.innerHTML = `<textarea class="inline-textarea" rows="${termRows}">${currentTerm}</textarea>`;
@@ -804,7 +806,7 @@
 
                 // 내용의 줄 수를 계산하여 textarea 높이 자동 조정
                 const lines = currentDesc.split('\n').length;
-                const minRows = (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') ? 10 : 3;
+                const minRows = (currentSheet === 'LecStudy' || currentSheet === 'WorkProcess') ? 10 : 3;
                 const calculatedRows = Math.max(minRows, lines + 2); // 여유 공간 2줄 추가
                 const maxRows = 50; // 최대 50줄
                 const textareaRows = Math.min(calculatedRows, maxRows);
@@ -866,7 +868,7 @@
             if (termDiv) termDiv.textContent = term;
 
             // 강의내용/실전과정은 접기/펼치기 구조 복원
-            const isLecture = currentSheet === 'Lectures' || currentSheet === 'WorkProcess';
+            const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
             const linkedDescription = linkify(description);
             const lines = description.split('\n');
             const isLongContent = lines.length > 1;
@@ -932,7 +934,7 @@
                 else if (currentSheet === 'Prompt') typeName = '프롬프트';
                 else if (currentSheet === 'URL') typeName = '참고 제목';
                 else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
-                else if (currentSheet === 'Lectures') typeName = '강의제목';
+                else if (currentSheet === 'LecStudy') typeName = '강의제목';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 제목';
 
                 alert(`${typeName}와 내용을 모두 입력해주세요.`);
@@ -974,7 +976,7 @@
             })
                 .then(() => {
                     // 강의내용일 때만 상세 안내 메시지 표시
-                    if (currentSheet === 'Lectures') {
+                    if (currentSheet === 'LecStudy') {
                         // 메시지는 표시하지만 UI는 이미 업데이트 완료
                         console.log('강의 내용 등록 요청을 보냈습니다.');
                     }
@@ -1069,7 +1071,7 @@
                 else if (currentSheet === 'Prompt') typeName = '프롬프트';
                 else if (currentSheet === 'URL') typeName = '참고 내용';
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
-                else if (currentSheet === 'Lectures') typeName = '강의 내용';
+                else if (currentSheet === 'LecStudy') typeName = '강의 내용';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 과정';
 
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
@@ -1089,7 +1091,7 @@
                 card.setAttribute('data-id', item.id);
 
                 // 강의내용/작업과정 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
-                const isLecture = currentSheet === 'Lectures' || currentSheet === 'WorkProcess';
+                const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
@@ -1200,7 +1202,7 @@
             }
 
             // 강의내용은 다른 카테고리와 분리 (서로 이동 불가)
-            const isCurrentLectures = currentSheet === 'Lectures';
+            const isCurrentLectures = currentSheet === 'LecStudy';
 
             if (isCurrentLectures) {
                 alert('강의내용은 다른 카테고리로 이동할 수 없습니다.');
@@ -1224,7 +1226,7 @@
                 { name: 'Prompt', label: '프롬프트' },
                 { name: 'URL', label: '참고URL' },
                 { name: 'Ideas', label: '아이디어' },
-                { name: 'Lectures', label: '강의내용' },
+                { name: 'LecStudy', label: '강의내용' },
                 { name: 'WorkProcess', label: '실전과정' }
             ];
 
