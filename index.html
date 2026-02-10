@@ -520,8 +520,8 @@
         <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
         <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
         <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
-        <div class="tab" id="tab-lecstudy" onclick="switchTab('LecStudy')">강의내용</div>
         <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
+        <div class="tab" id="tab-jungri" onclick="switchTab('Jungri')">강의정리</div>
     </div>
 
     <div class="input-box">
@@ -703,12 +703,12 @@
                 termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
                 termLabel.textContent = '아이디어 제목';
                 descLabel.textContent = '아이디어 상세 내용';
-            } else if (sheetName === 'LecStudy') {
-                document.getElementById('tab-lecstudy').classList.add('active');
-                termInput.placeholder = '강의제목 (예: React 기초 강의)';
-                termLabel.textContent = '강의제목';
-                descLabel.textContent = '강의 내용';
-                descInput.rows = 30; // 강의 내용은 10배 길게 (3 -> 30)
+            } else if (sheetName === 'Jungri') {
+                document.getElementById('tab-jungri').classList.add('active');
+                termInput.placeholder = '강의 제목 (예: React 기초 강의)';
+                termLabel.textContent = '강의 제목';
+                descLabel.textContent = '강의 정리';
+                descInput.rows = 30; // 강의 정리도 길게
             } else if (sheetName === 'WorkProcess') {
                 document.getElementById('tab-workprocess').classList.add('active');
                 termInput.placeholder = '실전 제목 (예: 프로젝트 진행 과정)';
@@ -744,8 +744,8 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 강의내용/실전과정은 접기/펼치기 구조 복원
-                        const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
+                        // 강의정리/실전과정은 접기/펼치기 구조 복원
+                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -775,7 +775,7 @@
                 let descDiv = card.querySelector('.card-desc');
                 const currentTerm = termDiv.textContent;
 
-                // 강의내용/실전과정의 경우 descDiv가 부모 div 안에 있을 수 있음
+                // 강의정리/실전과정의 경우 descDiv가 부모 div 안에 있을 수 있음
                 let descParent = null;
                 if (!descDiv) {
                     // descDiv를 찾지 못한 경우, card-content 내부에서 찾기
@@ -795,8 +795,8 @@
 
                 card.classList.add('editing');
 
-                // 강의내용/실전과정은 제목도 textarea로 표시 (긴 제목 지원)
-                if (currentSheet === 'LecStudy' || currentSheet === 'WorkProcess') {
+                // 강의정리/실전과정은 제목도 textarea로 표시 (긴 제목 지원)
+                if (currentSheet === 'Jungri' || currentSheet === 'WorkProcess') {
                     const termLines = currentTerm.split('\n').length;
                     const termRows = Math.max(2, Math.min(termLines + 1, 5)); // 최소 2줄, 최대 5줄
                     termDiv.innerHTML = `<textarea class="inline-textarea" rows="${termRows}">${currentTerm}</textarea>`;
@@ -806,7 +806,7 @@
 
                 // 내용의 줄 수를 계산하여 textarea 높이 자동 조정
                 const lines = currentDesc.split('\n').length;
-                const minRows = (currentSheet === 'LecStudy' || currentSheet === 'WorkProcess') ? 10 : 3;
+                const minRows = (currentSheet === 'Jungri' || currentSheet === 'WorkProcess') ? 10 : 3;
                 const calculatedRows = Math.max(minRows, lines + 2); // 여유 공간 2줄 추가
                 const maxRows = 50; // 최대 50줄
                 const textareaRows = Math.min(calculatedRows, maxRows);
@@ -867,8 +867,8 @@
             const descDiv = card.querySelector('.card-desc');
             if (termDiv) termDiv.textContent = term;
 
-            // 강의내용/실전과정은 접기/펼치기 구조 복원
-            const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
+            // 강의정리/실전과정은 접기/펼치기 구조 복원
+            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
             const linkedDescription = linkify(description);
             const lines = description.split('\n');
             const isLongContent = lines.length > 1;
@@ -934,8 +934,8 @@
                 else if (currentSheet === 'Prompt') typeName = '프롬프트';
                 else if (currentSheet === 'URL') typeName = '참고 제목';
                 else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
-                else if (currentSheet === 'LecStudy') typeName = '강의제목';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 제목';
+                else if (currentSheet === 'Jungri') typeName = '강의 제목';
 
                 alert(`${typeName}와 내용을 모두 입력해주세요.`);
                 return;
@@ -975,10 +975,10 @@
                 body: params
             })
                 .then(() => {
-                    // 강의내용일 때만 상세 안내 메시지 표시
-                    if (currentSheet === 'LecStudy') {
+                    // 강의정리일 때만 상세 안내 메시지 표시
+                    if (currentSheet === 'Jungri') {
                         // 메시지는 표시하지만 UI는 이미 업데이트 완료
-                        console.log('강의 내용 등록 요청을 보냈습니다.');
+                        console.log('강의 정리 등록 요청을 보냈습니다.');
                     }
                     // 백그라운드에서 실제 ID로 업데이트하기 위해 잠시 후 데이터 재로드
                     setTimeout(() => {
@@ -1019,7 +1019,7 @@
             card.className = 'card';
             card.setAttribute('data-id', item.id);
 
-            const isLecture = currentSheet === 'Lectures';
+            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
             const description = linkify(item.description);
             const descriptionText = String(item.description || '');
             const lines = descriptionText.split('\n');
@@ -1071,8 +1071,8 @@
                 else if (currentSheet === 'Prompt') typeName = '프롬프트';
                 else if (currentSheet === 'URL') typeName = '참고 내용';
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
-                else if (currentSheet === 'LecStudy') typeName = '강의 내용';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 과정';
+                else if (currentSheet === 'Jungri') typeName = '강의 정리';
 
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                 return;
@@ -1090,8 +1090,8 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 강의내용/작업과정 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
-                const isLecture = currentSheet === 'LecStudy' || currentSheet === 'WorkProcess';
+                // 강의정리/작업과정 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
+                const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
@@ -1201,11 +1201,11 @@
                 return;
             }
 
-            // 강의내용은 다른 카테고리와 분리 (서로 이동 불가)
-            const isCurrentLectures = currentSheet === 'LecStudy';
+            // 강의정리는 다른 카테고리와 분리 (서로 이동 불가)
+            const isCurrentJungri = currentSheet === 'Jungri';
 
-            if (isCurrentLectures) {
-                alert('강의내용은 다른 카테고리로 이동할 수 없습니다.');
+            if (isCurrentJungri) {
+                alert('강의정리는 다른 카테고리로 이동할 수 없습니다.');
                 return;
             }
 
@@ -1220,14 +1220,14 @@
             const modal = document.getElementById('moveModal');
             const buttonsContainer = document.getElementById('categoryButtons');
 
-            // 버튼 생성 (강의내용 제외)
+            // 버튼 생성 (강의정리 제외)
             const categories = [
                 { name: 'Coding', label: 'Coding용어' },
                 { name: 'Prompt', label: '프롬프트' },
                 { name: 'URL', label: '참고URL' },
                 { name: 'Ideas', label: '아이디어' },
-                { name: 'LecStudy', label: '강의내용' },
-                { name: 'WorkProcess', label: '실전과정' }
+                { name: 'WorkProcess', label: '실전과정' },
+                { name: 'Jungri', label: '강의정리' }
             ];
 
             buttonsContainer.innerHTML = '';

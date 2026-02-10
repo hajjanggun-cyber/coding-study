@@ -52,7 +52,7 @@ function doPost(e) {
 // 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
 function loadAllData() {
   // 유효한 시트 이름 목록
-  const VALID_SHEETS = ['Coding', 'Prompt', 'URL', 'Ideas', 'Lectures', 'WorkProcess', 'LecStudy'];
+  const VALID_SHEETS = ['Coding', 'Prompt', 'URL', 'Ideas', 'WorkProcess', 'Jungri'];
   const result = {};
 
   VALID_SHEETS.forEach(name => {
