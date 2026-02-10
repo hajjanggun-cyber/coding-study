@@ -22,7 +22,7 @@ function doGet(e) {
 
 // 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
 function loadAllData() {
-  const sheets = ['Terms', 'Commands', 'Videos'];
+  const sheets = ['Terms', 'Commands', 'Videos', 'Ideas', 'Lectures'];
   const result = {};
 
   sheets.forEach(name => {

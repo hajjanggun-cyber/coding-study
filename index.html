@@ -355,6 +355,7 @@
             <div class="tab" id="tab-commands" onclick="switchTab('Commands')">프롬프트</div>
             <div class="tab" id="tab-videos" onclick="switchTab('Videos')">참고URL</div>
             <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
+            <div class="tab" id="tab-lectures" onclick="switchTab('Lectures')">강의내용</div>
         </div>
 
         <div class="input-box">
@@ -483,6 +484,11 @@
                 termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
                 termLabel.textContent = '아이디어 제목';
                 descLabel.textContent = '아이디어 상세 내용';
+            } else if (sheetName === 'Lectures') {
+                document.getElementById('tab-lectures').classList.add('active');
+                termInput.placeholder = '강의제목 (예: React 기초 강의)';
+                termLabel.textContent = '강의제목';
+                descLabel.textContent = '강의 내용';
             }
 
             // 입력 필드 초기화
@@ -572,7 +578,13 @@
             const description = document.getElementById('description').value.trim();
 
             if (!term || !description) {
-                const typeName = (currentSheet === 'Terms' ? '용어' : '프롬프트');
+                let typeName = '데이터';
+                if (currentSheet === 'Terms') typeName = '용어';
+                else if (currentSheet === 'Commands') typeName = '프롬프트';
+                else if (currentSheet === 'Videos') typeName = '참고 제목';
+                else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
+                else if (currentSheet === 'Lectures') typeName = '강의제목';
+
                 alert(`${typeName}와 내용을 모두 입력해주세요.`);
                 return;
             }
@@ -629,6 +641,7 @@
                 else if (currentSheet === 'Commands') typeName = '프롬프트';
                 else if (currentSheet === 'Videos') typeName = '참고 내용';
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
+                else if (currentSheet === 'Lectures') typeName = '강의 내용';
 
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                 return;
@@ -720,16 +733,17 @@
                 '1': 'Terms',
                 '2': 'Commands',
                 '3': 'Videos',
-                '4': 'Ideas'
+                '4': 'Ideas',
+                '5': 'Lectures'
             };
 
-            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n\n(번호를 입력해주세요)`);
+            const targetNum = prompt(`선택한 ${checkboxes.length}개 항목을 어디로 이동할까요?\n\n1. Coding용어\n2. 프롬프트\n3. 참고URL\n4. 아이디어\n5. 강의내용\n\n(번호를 입력해주세요)`);
 
             if (!targetNum) return;
 
             const normalizedTarget = menuMap[targetNum.trim()];
             if (!normalizedTarget) {
-                alert('잘못된 번호입니다. 1, 2, 3 중에서 선택해주세요.');
+                alert('잘못된 번호입니다. 1, 2, 3, 4, 5 중에서 선택해주세요.');
                 return;
             }
 
