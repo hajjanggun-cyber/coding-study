@@ -1026,7 +1026,7 @@
             // 첫 번째는 제목, 두 번째는 내용
             const allTextareas = card.querySelectorAll('.inline-textarea');
             let description = '';
-            if (allTextareas.length >= 2) {
+            if (allTextareas.length >= 2 && allTextareas[1]) {
                 description = allTextareas[1].value.trim();
             } else {
                 // 기존 방식 시도
@@ -1048,34 +1048,42 @@
                 }
             }
 
-            // 즉시 UI 업데이트
-            const termDiv = card.querySelector('.card-term');
-            let descDiv = card.querySelector('.card-desc');
-
-            // descDiv가 없으면(접기모드에서 수정 시 교체됨), wrapper 안에서 새로 생성해야 할 수 있음
-            // 하지만 toggleInlineEdit를 호출하면 다시 렌더링되므로 여기서는 데이터만 준비하면 됨
-            if (termDiv) termDiv.textContent = term;
-
-            // 강의정리/실전과정은 접기/펼치기 구조 복원
-            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
-            const linkedDescription = linkify(description);
-            const lines = description.split('\n');
-            const isLongContent = lines.length > 1;
-
-            if (isLecture && isLongContent) {
-                // 부모 div 찾기
-                const parentDiv = descDiv.parentElement;
-                parentDiv.innerHTML = `
-                    <div class="card-desc collapsed" id="desc-${id}">${linkedDescription}</div>
-                    <button class="toggle-btn" onclick="toggleContent('${id}')">더보기 ▼</button>
-                `;
-            } else {
-                if (descDiv) descDiv.innerHTML = linkedDescription;
+            // 캐시에서 데이터 찾기
+            const item = cachedData[currentSheet].find(i => String(i.id) === String(id));
+            if (!item) {
+                alert('데이터를 찾을 수 없습니다.');
+                return;
             }
 
-            // 편집 모드 즉시 종료 (toggleInlineEdit 대신 직접 처리)
-            const actionsDiv = card.querySelector('.card-actions');
-            actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
+            // 카드 전체를 다시 그리기 (가장 안전한 방법)
+            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+            const linkedDescription = linkify(description);
+            const descriptionText = String(description || '');
+            const lines = descriptionText.split('\n');
+            const isLongContent = lines.length > 1;
+
+            let descHtml = '';
+            if (isLecture && isLongContent) {
+                descHtml = `
+                    <div>
+                        <div class="card-desc collapsed" id="desc-${id}">${linkedDescription}</div>
+                        <button class="toggle-btn" onclick="toggleContent('${id}')">더보기 ▼</button>
+                    </div>
+                `;
+            } else {
+                descHtml = `<div class="card-desc">${linkedDescription}</div>`;
+            }
+
+            card.innerHTML = `
+                <input type="checkbox" class="chk-box" data-id="${id}">
+                <div class="card-content">
+                    <div class="card-term">${term}</div>
+                    ${descHtml}
+                </div>
+                <div class="card-actions">
+                    <button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>
+                </div>`;
+
             card.classList.remove('editing');
 
             // 백그라운드에서 서버 동기화
