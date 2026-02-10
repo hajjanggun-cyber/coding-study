@@ -506,7 +506,7 @@
             <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
             <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
             <div class="tab" id="tab-lectures" onclick="switchTab('Lectures')">강의내용</div>
-            <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">작업과정</div>
+            <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
         </div>
 
         <div class="input-box">
@@ -696,10 +696,10 @@
                 descInput.rows = 30; // 강의 내용은 10배 길게 (3 -> 30)
             } else if (sheetName === 'WorkProcess') {
                 document.getElementById('tab-workprocess').classList.add('active');
-                termInput.placeholder = '작업 제목 (예: 프로젝트 진행 과정)';
-                termLabel.textContent = '작업 제목';
-                descLabel.textContent = '작업 과정';
-                descInput.rows = 30; // 작업 과정도 길게
+                termInput.placeholder = '실전 제목 (예: 프로젝트 진행 과정)';
+                termLabel.textContent = '실전 제목';
+                descLabel.textContent = '실전 과정';
+                descInput.rows = 30; // 실전 과정도 길게
             }
 
             // 입력 필드 초기화
@@ -821,7 +821,7 @@
                 else if (currentSheet === 'URL') typeName = '참고 제목';
                 else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
                 else if (currentSheet === 'Lectures') typeName = '강의제목';
-                else if (currentSheet === 'WorkProcess') typeName = '작업 제목';
+                else if (currentSheet === 'WorkProcess') typeName = '실전 제목';
 
                 alert(`${typeName}와 내용을 모두 입력해주세요.`);
                 return;
@@ -958,7 +958,7 @@
                 else if (currentSheet === 'URL') typeName = '참고 내용';
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
                 else if (currentSheet === 'Lectures') typeName = '강의 내용';
-                else if (currentSheet === 'WorkProcess') typeName = '작업 과정';
+                else if (currentSheet === 'WorkProcess') typeName = '실전 과정';
 
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                 return;
@@ -1113,7 +1113,7 @@
                 { name: 'URL', label: '참고URL' },
                 { name: 'Ideas', label: '아이디어' },
                 { name: 'Lectures', label: '강의내용' },
-                { name: 'WorkProcess', label: '작업과정' }
+                { name: 'WorkProcess', label: '실전과정' }
             ];
 
             buttonsContainer.innerHTML = '';
