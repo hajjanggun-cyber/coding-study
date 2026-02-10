@@ -463,6 +463,10 @@
             const termInput = document.getElementById('term');
             const termLabel = document.querySelector('.label');
             const descLabel = document.querySelectorAll('.label')[1];
+            const descInput = document.getElementById('description');
+
+            // 기본 세로 길이 (3줄)로 초기화
+            descInput.rows = 3;
 
             if (sheetName === 'Terms') {
                 document.getElementById('tab-terms').classList.add('active');
@@ -489,6 +493,7 @@
                 termInput.placeholder = '강의제목 (예: React 기초 강의)';
                 termLabel.textContent = '강의제목';
                 descLabel.textContent = '강의 내용';
+                descInput.rows = 30; // 강의 내용은 10배 길게 (3 -> 30)
             }
 
             // 입력 필드 초기화
