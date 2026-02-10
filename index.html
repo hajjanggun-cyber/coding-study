@@ -743,7 +743,15 @@
                 const currentDesc = descDiv.textContent;
 
                 card.classList.add('editing');
-                termDiv.innerHTML = `<input type="text" class="inline-input" value="${currentTerm.replace(/"/g, '&quot;')}">`;
+
+                // 강의내용/실전과정은 제목도 textarea로 표시 (긴 제목 지원)
+                if (currentSheet === 'Lectures' || currentSheet === 'WorkProcess') {
+                    const termLines = currentTerm.split('\n').length;
+                    const termRows = Math.max(2, Math.min(termLines + 1, 5)); // 최소 2줄, 최대 5줄
+                    termDiv.innerHTML = `<textarea class="inline-textarea" rows="${termRows}">${currentTerm}</textarea>`;
+                } else {
+                    termDiv.innerHTML = `<input type="text" class="inline-input" value="${currentTerm.replace(/"/g, '&quot;')}">`;
+                }
 
                 // 내용의 줄 수를 계산하여 textarea 높이 자동 조정
                 const lines = currentDesc.split('\n').length;
@@ -765,8 +773,13 @@
         // 인라인 수정 저장
         function saveInlineEdit(id) {
             const card = document.querySelector(`.card[data-id="${id}"]`);
-            const term = card.querySelector('.inline-input').value.trim();
-            const description = card.querySelector('.inline-textarea').value.trim();
+
+            // 제목은 input 또는 textarea일 수 있음
+            const termInput = card.querySelector('.inline-input');
+            const termTextarea = card.querySelector('.card-term .inline-textarea');
+            const term = termInput ? termInput.value.trim() : termTextarea.value.trim();
+
+            const description = card.querySelector('.card-desc .inline-textarea').value.trim();
 
             if (!term || !description) {
                 alert('내용을 입력해주세요.');
