@@ -389,7 +389,7 @@
 
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbyco5UlPbpPacV1wMfQmKYM7r06tXYeALU5UVefdXCA4VxPmedAdqrrHp1NHof07zzG2w/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwNOdl-7WSoyKr5iAiM2FmULruFkCCzcPGMGfIX7VN5ViFoiiqJbhZp-u3ioe-F43P1Nw/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -557,20 +557,19 @@
 
             fetch(API_URL, {
                 method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
                 body: JSON.stringify(payload)
             })
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        alert('수정되었습니다!');
-                        loadData(currentSort);
-                    } else {
-                        alert('실패: ' + (result.message || '알 수 없는 오류'));
-                    }
+                .then(() => {
+                    alert('수정 요청을 보냈습니다.');
+                    setTimeout(loadData, 1000, currentSort);
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('저장 중 오류가 발생했습니다.');
+                    alert('수정 중 오류가 발생했습니다: ' + err.message);
                 });
         }
 
@@ -612,21 +611,21 @@
 
             fetch(API_URL, {
                 method: 'POST',
+                mode: 'no-cors', // CORS 문제를 피하기 위한 설정
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
                 body: JSON.stringify(payload)
             })
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        alert('저장되었습니다!');
-                        cancelEdit(); // 입력창 초기화
-                        fetchAllData(); // 데이터 갱신
-                    } else {
-                        alert('저장 실패: ' + (result.message || '알 수 없는 오류'));
-                    }
+                .then(() => {
+                    // no-cors 모드에서는 응답 확인이 어려우므로 성공으로 간주하고 새로고침
+                    alert('데이터 등록 요청을 보냈습니다. (잠시 후 목록에 나타나지 않으면 GAS 설정을 확인해주세요)');
+                    cancelEdit();
+                    setTimeout(fetchAllData, 1500); // 1.5초 후 갱신
                 })
                 .catch(err => {
                     console.error('오류:', err);
-                    alert('저장 중 오류가 발생했습니다. (데이터가 너무 길거나 GAS 설정 문제일 수 있습니다)');
+                    alert('연결 오류: ' + err.message + '\n\n인터넷 연결이나 GAS 배포 상태를 확인해주세요.');
                 });
         }
 
