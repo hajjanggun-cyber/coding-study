@@ -600,6 +600,28 @@
             overflow: hidden;
             text-overflow: ellipsis;
             /* 글자 넘치면 말줄임 */
+            -webkit-overflow-scrolling: touch;
+            /* 모바일 스크롤 부드럽게 */
+        }
+
+        .order-btn {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 2px;
+            transition: all 0.2s;
+        }
+
+        .order-btn:hover {
+            background: #e9ecef;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+            /* 스크롤바 숨기기 */
         }
 
         .tab:hover {
@@ -690,14 +712,21 @@
         </div>
 
         <div class="controls">
-            <div style="display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 5px;">
                 <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
+                <div style="margin-left:auto; display:flex; gap:2px;">
+                    <button class="order-btn" onclick="reorderItem('top')" title="맨 위로">⏫</button>
+                    <button class="order-btn" onclick="reorderItem('up')" title="위로">🔼</button>
+                    <button class="order-btn" onclick="reorderItem('down')" title="아래로">🔽</button>
+                    <button class="order-btn" onclick="reorderItem('bottom')" title="맨 아래로">⏬</button>
+                </div>
                 <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
                 <button class="move-btn" onclick="moveSelected()">선택 이동</button>
             </div>
-            <div>
-                <button class="sort-btn active" id="btn-newest" onclick="loadData('newest')">최신순</button>
-                <button class="sort-btn" id="btn-alphabet" onclick="loadData('alphabet')">가나다순</button>
+            <div style="margin-top: 5px;">
+                <button class="sort-btn" id="btn-custom" onclick="changeSort('custom')">입력순</button>
+                <button class="sort-btn active" id="btn-newest" onclick="changeSort('newest')">최신순</button>
+                <button class="sort-btn" id="btn-alphabet" onclick="changeSort('alphabet')">가나다순</button>
             </div>
         </div>
 
@@ -801,6 +830,7 @@
                 })
                 .catch(err => {
                     console.error('데이터 로드 오류:', err);
+                    const container = document.getElementById('list-container'); // container 변수 선언
                     if (container) {
                         container.innerHTML = `
                             <div style="text-align:center; color:#d9534f; padding:40px;">
@@ -830,8 +860,8 @@
             }
 
             const termInput = document.getElementById('term');
-            const termLabel = document.querySelector('.label');
-            const descLabel = document.querySelectorAll('.label')[1];
+            const termLabel = document.querySelector('.input-row .label'); // Specific selector for term label
+            const descLabel = document.querySelectorAll('.input-row .label')[1]; // Specific selector for description label
             const descInput = document.getElementById('description');
 
             // 기본 세로 길이 (3줄)로 초기화
@@ -999,6 +1029,7 @@
 
                 // 강의정리/실전과정의 경우 descDiv가 부모 div 안에 있을 수 있음
                 let descParent = null;
+                let currentDescText = '';
                 if (!descDiv) {
                     // descDiv를 찾지 못한 경우, card-content 내부에서 찾기
                     const cardContent = card.querySelector('.card-content');
@@ -1318,6 +1349,7 @@
             document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
             if (currentSort === 'newest') document.getElementById('btn-newest').classList.add('active');
             if (currentSort === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
+            if (currentSort === 'custom') document.getElementById('btn-custom').classList.add('active');
 
             container.innerHTML = ''; // 초기화
 
@@ -1395,6 +1427,107 @@
                 descElement.classList.add('collapsed');
                 button.textContent = '더보기 ▼';
             }
+        }
+
+        // 정렬 변경 (서버 호출 없이 즉시 반영)
+        function changeSort(sortType) {
+            currentSort = sortType;
+            renderCurrentSheet();
+        }
+
+        // 데이터 순서 변경 (행 이동)
+        function reorderItem(direction) {
+            const checkboxes = document.querySelectorAll('.chk-box:checked');
+            if (checkboxes.length !== 1) {
+                alert('순서를 변경할 항목을 1개만 선택해주세요.');
+                return;
+            }
+
+            // 정렬 모드가 'custom'(입력순)이 아니면 경고 후 전환 또는 자동 전환
+            if (currentSort !== 'custom') {
+                if (confirm("순서 변경을 위해 '입력순' 보기로 전환합니다. 계속하시겠습니까?")) {
+                    changeSort('custom');
+                } else {
+                    return;
+                }
+            }
+
+            const id = checkboxes[0].dataset.id;
+            const data = cachedData[currentSheet];
+            const index = data.findIndex(item => String(item.id) === String(id));
+
+            if (index === -1) return;
+
+            // 로컬 배열에서 이동 (즉시 UI 반응)
+            // 주의: data는 시트 순서(오래된 순) 그대로라고 가정.
+            // direction: top(맨위=인덱스0), bottom(맨아래), up(인덱스-1), down(인덱스+1)
+
+            // 유효성 체크 및 이동
+            // 'up'은 인덱스가 작아지는 방향(0쪽으로), 'down'은 커지는 방향
+            let targetIndex;
+            if (direction === 'top') {
+                targetIndex = 0;
+            } else if (direction === 'bottom') {
+                targetIndex = data.length - 1;
+            } else if (direction === 'up') {
+                targetIndex = index - 1;
+            } else if (direction === 'down') {
+                targetIndex = index + 1;
+            }
+
+            if (targetIndex < 0 || targetIndex >= data.length || targetIndex === index) {
+                alert('더 이상 이동할 수 없습니다.');
+                return;
+            }
+
+            // 배열 내 이동
+            const item = data.splice(index, 1)[0];
+            // top, bottom일 때 splice가 좀 다름.
+            // 위에서 targetIndex를 이미 계산했지만, splice로 빼낸 후에는 인덱스가 밀릴 수 있음.
+            // insertAt 로직을 써야 함.
+
+            // 다시 계산:
+            // 1. 빼기 (remove)
+            // item은 이미 획득됨. data 길이는 1 줄어듦.
+
+            // 2. 넣기 (insert)
+            // top -> 0
+            // bottom -> data.length (맨 뒤)
+            // up -> index - 1 (원래 위치보다 하나 앞)
+            // down -> index (원래 위치에서 하나 빠졌으니, 원래 위치가 곧 다음 칸이었던 곳의 인덱스가 됨... 헷갈림)
+            // 예: [0, 1, 2, 3], 1번을 down -> [0, 2, 3], 넣을 위치 2 -> [0, 2, 1, 3] (OK)
+
+            // 재정리:
+            // 이미 splice(index, 1) 했으므로
+            // up: index - 1 (index가 0이면 불가)
+            // down: index (index가 last면 splice후 length와 같음 -> append)
+
+            // 단순화를 위해 위/아래만 재계산
+            if (direction === 'up') {
+                targetIndex = index - 1;
+            } else if (direction === 'down') {
+                targetIndex = index; // 원래 인덱스 자리에 넣으면, 원래 item 뒤에 있던 애가 앞으로 당겨졌으므로 그 뒤(원래 자리)에 들어감
+            } else if (direction === 'top') {
+                targetIndex = 0;
+            } else if (direction === 'bottom') {
+                targetIndex = data.length;
+            }
+
+            data.splice(targetIndex, 0, item);
+
+            // UI 갱신
+            renderCurrentSheet();
+
+            // 서버 동기화
+            fetch(`${API_URL}?action=reorder&id=${id}&direction=${direction}&sheetName=${currentSheet}`)
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status !== 'success') {
+                        // 실패 시 롤백? 복잡하므로 알림만
+                        console.error(result.message);
+                        alert('서버 저장 실패: ' + result.message);
+                    }
+                });
         }
 
         // 전체 선택 / 해제
