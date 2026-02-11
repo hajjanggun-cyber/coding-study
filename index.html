@@ -593,8 +593,8 @@
         }
 
         .tab {
-            flex: 0 0 auto;
-            /* 크기 고정, 늘어나거나 줄어들지 않음 */
+            flex: 1;
+            /* 모든 탭이 균등하게 공간을 나눠 가짐 */
             padding: 12px 12px;
             /* 컴팩트한 패딩 */
             text-align: center;
@@ -609,8 +609,6 @@
             /* 위쪽만 둥글게 */
             transition: all 0.2s;
             font-size: 13.5px;
-            min-width: fit-content;
-            /* 내용만큼만 차지 */
         }
 
         .tab:hover {
