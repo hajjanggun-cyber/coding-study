@@ -630,12 +630,16 @@
         <h2>코딩 용어 정리</h2>
 
         <div class="tabs">
-            <div class="tab active" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
+            <div class="tab Active" id="tab-coding" onclick="switchTab('Coding')">Coding용어</div>
             <div class="tab" id="tab-prompt" onclick="switchTab('Prompt')">프롬프트</div>
             <div class="tab" id="tab-url" onclick="switchTab('URL')">참고URL</div>
             <div class="tab" id="tab-ideas" onclick="switchTab('Ideas')">아이디어</div>
             <div class="tab" id="tab-workprocess" onclick="switchTab('WorkProcess')">실전과정</div>
             <div class="tab" id="tab-jungri" onclick="switchTab('Jungri')">강의정리</div>
+            <div class="tab" id="tab-customer" onclick="switchTab('Customer')">손님내용</div>
+            <div class="tab" id="tab-visit" onclick="switchTab('Visit')">방문예정</div>
+            <div class="tab" id="tab-itemdetail" onclick="switchTab('ItemDetail')">물건세부</div>
+            <div class="tab" id="tab-private" onclick="switchTab('Private')">개인자료</div>
         </div>
 
         <div class="input-box">
@@ -680,7 +684,7 @@
 
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbyidQK2Y5eaGqB3TZ1Wa1BD_UN9VUjX9Iq38By10YIc-eU8BqfhyB-bwXcXQaVr7TrnVg/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbyw-piHlXPykbEjMVzBE02VaoGpZ7x9X0AhSlyPaIKQHVGXIbF9IIffjXdvaYTXvAV1rQ/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -829,6 +833,27 @@
                 termLabel.textContent = '실전 제목';
                 descLabel.textContent = '실전 과정';
                 descInput.rows = 30; // 실전 과정도 길게
+            } else if (sheetName === 'Customer') {
+                document.getElementById('tab-customer').classList.add('active');
+                termInput.placeholder = '손님 제목 (예: 홍길동)';
+                termLabel.textContent = '손님 제목';
+                descLabel.textContent = '손님 내용';
+            } else if (sheetName === 'Visit') {
+                document.getElementById('tab-visit').classList.add('active');
+                termInput.placeholder = '방문 일정 (예: 2024-01-01)';
+                termLabel.textContent = '방문 일정';
+                descLabel.textContent = '방문 내용';
+            } else if (sheetName === 'ItemDetail') {
+                document.getElementById('tab-itemdetail').classList.add('active');
+                termInput.placeholder = '물건 이름 (예: 냉장고)';
+                termLabel.textContent = '물건 이름';
+                descLabel.textContent = '세부 사항';
+            } else if (sheetName === 'Private') {
+                document.getElementById('tab-private').classList.add('active');
+                termInput.placeholder = '자료 제목 (예: 비밀번호)';
+                termLabel.textContent = '자료 제목';
+                descLabel.textContent = '자료 내용';
+                descInput.rows = 30; // 개인 자료도 길게
             }
 
             // 입력 필드 초기화
@@ -854,8 +879,8 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 강의정리/실전과정은 접기/펼치기 구조 복원
-                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+                        // 강의정리/실전과정/개인자료는 접기/펼치기 구조 복원
+                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -894,7 +919,7 @@
                         const tempContainer = document.createElement('div');
 
                         // 카드 내용 재구성 (renderCurrentSheet 로직 일부 재사용)
-                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -1056,7 +1081,7 @@
             }
 
             // 카드 전체를 다시 그리기 (가장 안전한 방법)
-            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
             const linkedDescription = linkify(description);
             const descriptionText = String(description || '');
             const lines = descriptionText.split('\n');
@@ -1132,6 +1157,10 @@
                 else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 제목';
                 else if (currentSheet === 'Jungri') typeName = '강의 제목';
+                else if (currentSheet === 'Customer') typeName = '손님 제목';
+                else if (currentSheet === 'Visit') typeName = '방문 일정';
+                else if (currentSheet === 'ItemDetail') typeName = '물건 이름';
+                else if (currentSheet === 'Private') typeName = '자료 제목';
 
                 alert(`${typeName}와 내용을 모두 입력해주세요.`);
                 return;
@@ -1207,7 +1236,7 @@
             card.className = 'card';
             card.setAttribute('data-id', item.id);
 
-            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
             const description = linkify(item.description);
             const descriptionText = String(item.description || '');
             const lines = descriptionText.split('\n');
@@ -1261,6 +1290,10 @@
                 else if (currentSheet === 'Ideas') typeName = '아이디어';
                 else if (currentSheet === 'WorkProcess') typeName = '실전 과정';
                 else if (currentSheet === 'Jungri') typeName = '강의 정리';
+                else if (currentSheet === 'Customer') typeName = '손님 내용';
+                else if (currentSheet === 'Visit') typeName = '방문 데이터';
+                else if (currentSheet === 'ItemDetail') typeName = '물건 데이터';
+                else if (currentSheet === 'Private') typeName = '개인 자료';
 
                 container.innerHTML = `<p style="text-align:center; color:#999; padding:40px;">등록된 ${typeName}가 없습니다. 첫 데이터를 등록해보세요!</p>`;
                 return;
@@ -1278,8 +1311,8 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 강의정리/작업과정 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
-                const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess';
+                // 강의정리/작업과정/개인자료 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
+                const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
@@ -1386,11 +1419,11 @@
                 return;
             }
 
-            // 강의정리는 다른 카테고리와 분리 (서로 이동 불가)
-            const isCurrentJungri = currentSheet === 'Jungri';
+            // 강의정리/개인자료는 다른 카테고리와 분리 (서로 이동 불가)
+            const isCurrentJungri = currentSheet === 'Jungri' || currentSheet === 'Private';
 
             if (isCurrentJungri) {
-                alert('강의정리는 다른 카테고리로 이동할 수 없습니다.');
+                alert('이 카테고리의 항목은 다른 카테고리로 이동할 수 없습니다.');
                 return;
             }
 
@@ -1412,7 +1445,11 @@
                 { name: 'URL', label: '참고URL' },
                 { name: 'Ideas', label: '아이디어' },
                 { name: 'WorkProcess', label: '실전과정' },
-                { name: 'Jungri', label: '강의정리' }
+                { name: 'Jungri', label: '강의정리' },
+                { name: 'Customer', label: '손님내용' },
+                { name: 'Visit', label: '방문예정' },
+                { name: 'ItemDetail', label: '물건세부' },
+                { name: 'Private', label: '개인자료' }
             ];
 
             buttonsContainer.innerHTML = '';
