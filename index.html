@@ -1443,15 +1443,13 @@
                 return;
             }
 
-            // 정렬 모드가 'custom'(입력순)이 아니면 경고 후 전환
+            // 정렬 모드가 'custom'(입력순)이 아니면 조용히 전환
             if (currentSort !== 'custom') {
-                if (confirm("순서 변경을 위해 '입력순' 보기로 전환합니다. 계속하시겠습니까?")) {
-                    changeSort('custom');
-                    alert('입력순 보기로 전환되었습니다. 이동할 항목을 다시 선택해주세요.');
-                    return;
-                } else {
-                    return;
-                }
+                currentSort = 'custom';
+                // 정렬 버튼 UI만 업데이트 (화면 리스트는 그대로 유지하여 깜빡임 방지 & 연속 클릭 지원)
+                document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+                const customBtn = document.getElementById('btn-custom');
+                if (customBtn) customBtn.classList.add('active');
             }
 
             const id = checkboxes[0].dataset.id;
