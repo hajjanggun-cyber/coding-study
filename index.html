@@ -566,50 +566,82 @@
             }
         }
 
-        /* 탭 스타일 */
+        /* 탭 스타일 - PC에서 한 줄, 모바일에서 줄바꿈 */
         .tabs {
             display: flex;
             flex-wrap: nowrap;
-            /* 모바일에서 줄바꿈 방지 */
+            /* PC에서는 무조건 한 줄 */
             overflow-x: auto;
-            /* 가로 스크롤 허용 */
-            -webkit-overflow-scrolling: touch;
+            /* 넘치면 가로 스크롤 */
+            gap: 3px;
             margin-bottom: 0;
             border-bottom: 2px solid #003366;
-            scrollbar-width: none;
-            /* 파이어폭스 스크롤바 숨기기 */
+            padding-bottom: 0;
+            scrollbar-width: thin;
+            /* 파이어폭스 스크롤바 */
+            -webkit-overflow-scrolling: touch;
+            /* 모바일 스크롤 부드럽게 */
         }
 
         .tabs::-webkit-scrollbar {
-            display: none;
-            /* 크롬/사파리 스크롤바 숨기기 */
+            height: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 2px;
         }
 
         .tab {
-            padding: 12px 20px;
+            flex: 0 0 auto;
+            /* 크기 고정, 늘어나거나 줄어들지 않음 */
+            padding: 12px 12px;
+            /* 컴팩트한 패딩 */
+            text-align: center;
             white-space: nowrap;
-            /* 텍스트 줄바꿈 방지 */
             cursor: pointer;
             background: #f1f3f5;
             border: 1px solid #ddd;
             border-bottom: none;
-            margin-right: 4px;
             font-weight: bold;
-            color: #777;
+            color: #555;
             border-radius: 5px 5px 0 0;
+            /* 위쪽만 둥글게 */
             transition: all 0.2s;
-            flex-shrink: 0;
-            /* 크기 줄어듦 방지 */
+            font-size: 13.5px;
+            min-width: fit-content;
+            /* 내용만큼만 차지 */
         }
 
         .tab:hover {
-            background: #e9ecef;
+            background: #e0e4e8;
+            color: #003366;
         }
 
         .tab.active {
             background: #003366;
             color: white;
             border-color: #003366;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap;
+                /* 모바일에서는 줄바꿈 허용 */
+                overflow-x: visible;
+                gap: 4px;
+                padding-bottom: 5px;
+            }
+
+            .tab {
+                flex: 1 1 calc(33% - 4px);
+                /* 한 줄에 3개씩 */
+                font-size: 12px;
+                padding: 10px 5px;
+                border-radius: 5px;
+                border: 1px solid #ddd;
+            }
         }
 
         .input-box {
