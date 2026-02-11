@@ -724,13 +724,33 @@
                 <button class="move-btn" onclick="moveSelected()">선택 이동</button>
             </div>
             <div style="margin-top: 5px;">
-                <button class="sort-btn" id="btn-custom" onclick="changeSort('custom')">입력순</button>
-                <button class="sort-btn active" id="btn-newest" onclick="changeSort('newest')">최신순</button>
-                <button class="sort-btn" id="btn-alphabet" onclick="changeSort('alphabet')">가나다순</button>
+                <button class="sort-btn" data-sort="custom" onclick="changeSort('custom')">입력순</button>
+                <button class="sort-btn active" data-sort="newest" onclick="changeSort('newest')">최신순</button>
+                <button class="sort-btn" data-sort="alphabet" onclick="changeSort('alphabet')">가나다순</button>
             </div>
         </div>
 
         <div id="list-container">
+        </div>
+
+        <!-- 하단 컨트롤 (상단과 동일 기능) -->
+        <div class="controls" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 5px;">
+                <button class="select-btn" onclick="toggleSelectAll()">전체 선택</button>
+                <div style="margin-left:auto; display:flex; gap:2px;">
+                    <button class="order-btn" onclick="reorderItem('top')" title="맨 위로">⏫</button>
+                    <button class="order-btn" onclick="reorderItem('up')" title="위로">🔼</button>
+                    <button class="order-btn" onclick="reorderItem('down')" title="아래로">🔽</button>
+                    <button class="order-btn" onclick="reorderItem('bottom')" title="맨 아래로">⏬</button>
+                </div>
+                <button class="delete-btn" onclick="deleteSelected()">선택 삭제</button>
+                <button class="move-btn" onclick="moveSelected()">선택 이동</button>
+            </div>
+            <div style="margin-top: 5px;">
+                <button class="sort-btn" data-sort="custom" onclick="changeSort('custom')">입력순</button>
+                <button class="sort-btn active" data-sort="newest" onclick="changeSort('newest')">최신순</button>
+                <button class="sort-btn" data-sort="alphabet" onclick="changeSort('alphabet')">가나다순</button>
+            </div>
         </div>
     </div>
 
@@ -1345,11 +1365,9 @@
 
             const data = [...(cachedData[currentSheet] || [])];
 
-            // 정렬 버튼 활성화 표시
+            // 정렬 버튼 활성화 표시 (위, 아래 버튼 모두 동기화)
             document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-            if (currentSort === 'newest') document.getElementById('btn-newest').classList.add('active');
-            if (currentSort === 'alphabet') document.getElementById('btn-alphabet').classList.add('active');
-            if (currentSort === 'custom') document.getElementById('btn-custom').classList.add('active');
+            document.querySelectorAll(`[data-sort="${currentSort}"]`).forEach(btn => btn.classList.add('active'));
 
             container.innerHTML = ''; // 초기화
 
@@ -1448,8 +1466,7 @@
                 currentSort = 'custom';
                 // 정렬 버튼 UI만 업데이트 (화면 리스트는 그대로 유지하여 깜빡임 방지 & 연속 클릭 지원)
                 document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-                const customBtn = document.getElementById('btn-custom');
-                if (customBtn) customBtn.classList.add('active');
+                document.querySelectorAll(`[data-sort="custom"]`).forEach(btn => btn.classList.add('active'));
             }
 
             const id = checkboxes[0].dataset.id;
