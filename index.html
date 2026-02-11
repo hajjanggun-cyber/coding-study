@@ -861,16 +861,19 @@
                 termInput.placeholder = '손님 제목 (예: 홍길동)';
                 termLabel.textContent = '손님 제목';
                 descLabel.textContent = '손님 내용';
+                descInput.rows = 30; // 손님 내용도 길게
             } else if (sheetName === 'Visit') {
                 document.getElementById('tab-visit').classList.add('active');
                 termInput.placeholder = '방문 일정 (예: 2024-01-01)';
                 termLabel.textContent = '방문 일정';
                 descLabel.textContent = '방문 내용';
+                descInput.rows = 30; // 방문 내용도 길게
             } else if (sheetName === 'ItemDetail') {
                 document.getElementById('tab-itemdetail').classList.add('active');
                 termInput.placeholder = '물건 이름 (예: 냉장고)';
                 termLabel.textContent = '물건 이름';
                 descLabel.textContent = '세부 사항';
+                descInput.rows = 30; // 물건 세부 사항도 길게
             } else if (sheetName === 'Private') {
                 document.getElementById('tab-private').classList.add('active');
                 termInput.placeholder = '자료 제목 (예: 비밀번호)';
@@ -902,8 +905,8 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 강의정리/실전과정/개인자료는 접기/펼치기 구조 복원
-                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
+                        // 강의정리/실전과정/개인자료/손님/방문/물건은 접기/펼치기 구조 복원
+                        const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -942,7 +945,7 @@
                         const tempContainer = document.createElement('div');
 
                         // 카드 내용 재구성 (renderCurrentSheet 로직 일부 재사용)
-                        const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
+                        const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
@@ -1104,7 +1107,7 @@
             }
 
             // 카드 전체를 다시 그리기 (가장 안전한 방법)
-            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
+            const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
             const linkedDescription = linkify(description);
             const descriptionText = String(description || '');
             const lines = descriptionText.split('\n');
@@ -1259,7 +1262,7 @@
             card.className = 'card';
             card.setAttribute('data-id', item.id);
 
-            const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
+            const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
             const description = linkify(item.description);
             const descriptionText = String(item.description || '');
             const lines = descriptionText.split('\n');
@@ -1334,8 +1337,8 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 강의정리/작업과정/개인자료 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
-                const isLecture = currentSheet === 'Jungri' || currentSheet === 'WorkProcess' || currentSheet === 'Private';
+                // 강의정리/작업과정/개인자료/손님/방문/물건 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
+                const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
@@ -1442,11 +1445,11 @@
                 return;
             }
 
-            // 강의정리/개인자료는 다른 카테고리와 분리 (서로 이동 불가)
-            const isCurrentJungri = currentSheet === 'Jungri' || currentSheet === 'Private';
+            // 확장형(강의정리 등)은 기본형과 폼 구조가 달라 이동 불가 (서로 호환되는 것끼리는 가능하지만 복잡도 줄이기 위해 제한)
+            const isExtendedForm = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
 
-            if (isCurrentJungri) {
-                alert('이 카테고리의 항목은 다른 카테고리로 이동할 수 없습니다.');
+            if (isExtendedForm) {
+                alert('이 카테고리(확장형)의 항목은 이동할 수 없습니다.');
                 return;
             }
 
