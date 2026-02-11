@@ -566,37 +566,25 @@
             }
         }
 
-        /* 탭 스타일 - PC에서 한 줄, 모바일에서 줄바꿈 */
+        /* 탭 스타일 - PC에서 한 줄 꽉 차게 */
         .tabs {
-            display: flex;
-            flex-wrap: nowrap;
-            /* PC에서는 무조건 한 줄 */
-            overflow-x: auto;
-            /* 넘치면 가로 스크롤 */
-            gap: 3px;
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(0, 1fr);
+            /* 중요: 최소 크기 0으로 설정하여 무조건 균등 분할 */
+            gap: 2px;
             margin-bottom: 0;
             border-bottom: 2px solid #003366;
-            padding-bottom: 0;
-            scrollbar-width: thin;
-            /* 파이어폭스 스크롤바 */
-            -webkit-overflow-scrolling: touch;
-            /* 모바일 스크롤 부드럽게 */
+            padding-bottom: 0px;
         }
 
-        .tabs::-webkit-scrollbar {
-            height: 4px;
-        }
 
-        .tabs::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 2px;
-        }
 
         .tab {
-            flex: 1;
-            /* 모든 탭이 균등하게 공간을 나눠 가짐 */
-            padding: 12px 12px;
-            /* 컴팩트한 패딩 */
+            width: 100%;
+            /* 셀 꽉 채우기 */
+            padding: 12px 2px;
+            /* 좌우 여백 최소화 */
             text-align: center;
             white-space: nowrap;
             cursor: pointer;
@@ -609,6 +597,9 @@
             /* 위쪽만 둥글게 */
             transition: all 0.2s;
             font-size: 13.5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* 글자 넘치면 말줄임 */
         }
 
         .tab:hover {
@@ -625,6 +616,8 @@
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .tabs {
+                display: flex;
+                /* 모바일은 Flex로 전환 */
                 flex-wrap: wrap;
                 /* 모바일에서는 줄바꿈 허용 */
                 overflow-x: visible;
