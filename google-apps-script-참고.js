@@ -22,6 +22,8 @@ function doGet(e) {
     return moveData(e.parameter.ids, e.parameter.sheetName, e.parameter.targetSheet);
   } else if (action === 'load') {
     return loadData(e.parameter.sort, sheetName);
+  } else if (action === 'reorder') {
+    return reorderData(e.parameter.id, e.parameter.direction, sheetName);
   }
 }
 
@@ -66,7 +68,7 @@ function doPost(e) {
 // 모든 시트의 데이터를 싹 긁어서 객체로 반환 (성능 최적화용)
 function loadAllData() {
   // 유효한 시트 이름 목록
-  const VALID_SHEETS = ['Coding', 'Prompt', 'URL', 'Ideas', 'WorkProcess', 'Jungri'];
+  const VALID_SHEETS = ['Coding', 'Prompt', 'URL', 'Ideas', 'WorkProcess', 'Jungri', 'Customer', 'Visit', 'ItemDetail', 'Private'];
   const result = {};
 
   VALID_SHEETS.forEach(name => {
@@ -173,6 +175,44 @@ function moveData(ids, sourceSheetName, targetSheetName) {
       if (idList.includes(String(sourceData[i][0]).trim())) { sourceSheet.deleteRow(i + 1); }
     }
     return createJsonResponse({ status: 'success', message: `${rowsToMove.length}개 항목이 이동되었습니다.` });
+  } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
+}
+
+function reorderData(id, direction, sheetName) {
+  try {
+    const sheet = getSheet(sheetName);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) == String(id)) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+
+    if (rowIndex === -1) return createJsonResponse({ status: 'error', message: 'ID not found' });
+
+    const lastRow = sheet.getLastRow();
+    const range = sheet.getRange(rowIndex + ':' + rowIndex);
+
+    let targetIndex;
+    if (direction === 'top') {
+      if (rowIndex === 2) return createJsonResponse({ status: 'success' });
+      targetIndex = 2;
+    } else if (direction === 'bottom') {
+      if (rowIndex === lastRow) return createJsonResponse({ status: 'success' });
+      targetIndex = lastRow + 1;
+    } else if (direction === 'up') {
+      if (rowIndex === 2) return createJsonResponse({ status: 'success' });
+      targetIndex = rowIndex - 1;
+    } else if (direction === 'down') {
+      if (rowIndex === lastRow) return createJsonResponse({ status: 'success' });
+      targetIndex = rowIndex + 2;
+    }
+
+    sheet.moveRows(range, targetIndex);
+    return createJsonResponse({ status: 'success' });
   } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
 }
 
