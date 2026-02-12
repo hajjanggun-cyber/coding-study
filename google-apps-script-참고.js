@@ -1,8 +1,17 @@
 // 구글 Apps Script 코드 (참고용)
 // 이 코드를 구글 스프레드시트의 Apps Script 편집기에 붙여넣으세요
 
+// 🔒 보안 설정: 이 비밀번호를 원하는 대로 변경하세요!
+const APP_PASSWORD = "1234";
+
 function doGet(e) {
+  // 비밀번호 검증
+  if (e.parameter.password !== APP_PASSWORD) {
+    return createJsonResponse({ status: 'error', message: '비밀번호가 일치하지 않습니다.' });
+  }
+
   const action = e.parameter.action;
+
   const sheetName = e.parameter.sheetName || 'Coding';
 
   if (action === 'loadAll') {
@@ -34,6 +43,11 @@ function doPost(e) {
     // 2. 만약 params가 비어있다면 e.parameter에서 직접 가져옴
     if (!params || Object.keys(params).length === 0) {
       params = e.parameter;
+    }
+
+    // 비밀번호 검증 (POST)
+    if (params.password !== APP_PASSWORD) {
+      return createJsonResponse({ status: 'error', message: '비밀번호가 일치하지 않습니다.' });
     }
 
     const action = params.action;
