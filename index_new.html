@@ -465,66 +465,6 @@
             background: #666;
         }
 
-        /* 비밀번호 입력 모달 (보안) */
-        .password-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #003366;
-            z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .password-modal.hidden {
-            display: none;
-        }
-
-        .password-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            width: 300px;
-        }
-
-        .password-box h3 {
-            margin-top: 0;
-            color: #003366;
-            margin-bottom: 20px;
-        }
-
-        .password-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .password-submit {
-            width: 100%;
-            padding: 12px;
-            background: #003366;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .password-submit:hover {
-            background: #004080;
-        }
-
         /* 하이퍼링크 스타일 */
         .card-desc a {
             color: #003366 !important;
@@ -680,16 +620,6 @@
 </head>
 
 <body>
-    <!-- 비밀번호 잠금 화면 -->
-    <div id="passwordModal" class="password-modal">
-        <div class="password-box">
-            <h3>🔒 보안 접속</h3>
-            <p style="font-size:13px; color:#666; margin-bottom:20px;">설정하신 비밀번호를 입력해주세요.</p>
-            <input type="password" id="passwordInput" class="password-input" placeholder="비밀번호 입력"
-                onkeypress="handleEnter(event)">
-            <button class="password-submit" onclick="submitPassword()">접속하기</button>
-        </div>
-    </div>
     <!-- 로딩 인디케이터 -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="spinner"></div>
@@ -755,7 +685,6 @@
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
         let cachedData = null; // 모든 시트 데이터를 저장할 변수
-        let userPassword = ''; // 🔒 사용자가 입력한 비밀번호 저장
 
         // URL을 하이퍼링크로 변환하는 함수 (프로토콜 없는 도메인 지원 버전)
         function linkify(text) {
@@ -774,43 +703,11 @@
             });
         }
 
-        // 페이지 로드 시 비밀번호 먼저 물어보기
+        // 페이지 로드 시 코딩용어 탭만 먼저 불러오기 (성능 최적화)
         window.onload = function () {
-            // 로컬 스토리지에 저장된 비밀번호가 있는지 확인 (선택 사항)
-            const savedPw = localStorage.getItem('app_password');
-            if (savedPw) {
-                userPassword = savedPw;
-                document.getElementById('passwordModal').classList.add('hidden');
-                showLoading();
-                fetchCurrentTabData();
-            } else {
-                document.getElementById('passwordInput').focus();
-            }
-        };
-
-        // 비밀번호 제출 처리
-        function submitPassword() {
-            const input = document.getElementById('passwordInput');
-            userPassword = input.value;
-
-            if (!userPassword) {
-                alert('비밀번호를 입력해주세요.');
-                return;
-            }
-
-            // 비밀번호 저장 (편의성)
-            localStorage.setItem('app_password', userPassword);
-
-            // 모달 숨기고 데이터 로드 시작
-            document.getElementById('passwordModal').classList.add('hidden');
             showLoading();
             fetchCurrentTabData();
-        }
-
-        // 엔터키 처리
-        function handleEnter(e) {
-            if (e.key === 'Enter') submitPassword();
-        }
+        };
 
         // 로딩 표시
         function showLoading() {
@@ -824,21 +721,11 @@
 
         // 현재 탭만 불러오기 (초기 로딩 속도 개선)
         function fetchCurrentTabData() {
-            // 비밀번호 포함하여 요청
-            const url = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    // 비밀번호 오류 체크
-                    if (data.status === 'error' && data.message.includes('비밀번호')) {
-                        alert('비밀번호가 틀렸습니다.');
-                        localStorage.removeItem('app_password'); // 잘못된 비번 삭제
-                        document.getElementById('passwordModal').classList.remove('hidden');
-                        document.getElementById('loadingOverlay').classList.add('hidden');
-                        return;
-                    }
-
                     if (!cachedData) cachedData = {};
                     cachedData[currentSheet] = data;
                     renderCurrentSheet();
@@ -853,17 +740,13 @@
 
         // 전 시트 데이터를 한 번에 가져오는 함수 (백그라운드 동기화용)
         function fetchAllData(callback) {
-            // 비밀번호 포함
-            const url = `${API_URL}?action=loadAll&t=${new Date().getTime()}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=loadAll&t=${new Date().getTime()}`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
+                    // 서버 응답 검증
                     if (data && data.status === 'error') {
-                        if (data.message.includes('비밀번호')) {
-                            console.error('백그라운드 동기화 실패: 비밀번호 오류');
-                            return;
-                        }
                         throw new Error(data.message || '서버 응답 오류');
                     }
 
@@ -1210,7 +1093,6 @@
             params.append('term', term);
             params.append('description', description);
             params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
 
             fetch(API_URL, {
                 method: 'POST',
@@ -1282,7 +1164,6 @@
             params.append('term', term);
             params.append('description', description);
             params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
 
             fetch(API_URL, {
                 method: 'POST',
@@ -1483,7 +1364,7 @@
             }
 
             // 백그라운드에서 서버 동기화
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}`;
 
             fetch(url)
                 .then(res => res.json())
@@ -1582,7 +1463,7 @@
             }
 
             // 백그라운드에서 서버 동기화
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}`;
 
             fetch(url)
                 .then(res => res.json())
