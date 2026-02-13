@@ -324,8 +324,8 @@
 
         /* 접기/펼치기 기능 */
         .card-desc.collapsed {
-            max-height: 20em;
-            /* 약 13줄 높이 (1.5 * 13 = 19.5지만 여유 있게 20em) */
+            max-height: 15em;
+            /* 10줄 높이 (1.5 * 10 = 15em) */
             overflow: hidden;
             position: relative;
         }
@@ -1083,12 +1083,11 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 모든 시트에서 13줄 이상일 때만 접기/펼치기 적용
                         const useCollapse = true; // 모든 시트 허용
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
-                        const isLongContent = lines.length > 13; // 13줄 초과 시에만 버튼 표시
+                        const isLongContent = lines.length > 10; // 10줄 초과 시에만 버튼 표시
 
                         if (useCollapse && isLongContent) {
                             // 부모 div 찾기
@@ -1285,12 +1284,12 @@
                 return;
             }
 
-            // 모든 시트에서 13줄 이상일 때 접기/펼치기 적용
+            // 모든 시트에서 10줄 이상일 때 접기/펼치기 적용
             const useCollapse = true; // 모든 시트 허용
             const linkedDescription = linkify(description);
             const descriptionText = String(description || '');
             const lines = descriptionText.split('\n');
-            const isLongContent = lines.length > 13; // 13줄 초과 시 버튼 생성
+            const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
 
             let descHtml = '';
             if (useCollapse && isLongContent) {
@@ -1517,13 +1516,13 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 모든 시트에서 내용이 13줄을 넘어가면 접기/펼치기 버튼 추가
+                // 모든 시트에서 내용이 10줄을 넘어가면 접기/펼치기 버튼 추가
                 const useCollapse = true;
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
                 const lines = descriptionText.split('\n');
-                const isLongContent = lines.length > 13; // 13줄 초과 시 버튼 생성
+                const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
 
                 let descHtml = '';
                 if (useCollapse && isLongContent) {
