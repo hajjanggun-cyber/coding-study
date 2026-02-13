@@ -1652,7 +1652,7 @@
             // 비밀번호 포함하여 전송
             showLoading();
 
-            fetch(`${API_URL}?action=reorder&id=${id}&direction=${serverDirection}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}`)
+            fetch(`${API_URL}?action=reorder&id=${id}&direction=${serverDirection}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`)
                 .then(res => res.json())
                 .then(result => {
                     if (result.status !== 'success') {
@@ -1712,7 +1712,7 @@
             showLoading();
 
             // API가 다중 삭제를 지원하므로(ids 파라미터), 한 번에 요청
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`;
 
             fetch(url)
                 .then(res => res.json())
@@ -1814,7 +1814,7 @@
 
             showLoading(); // 이동 중...
 
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`;
 
             fetch(url)
                 .then(res => res.json())
