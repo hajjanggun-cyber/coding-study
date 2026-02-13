@@ -1257,7 +1257,7 @@
 
                 const actionsDiv = card.querySelector('.card-actions');
                 actionsDiv.innerHTML = `
-                    <button class="inline-cancel-btn" onclick="toggleInlineEdit('${id}')">취소</button>
+                    <button class="inline-cancel-btn" onclick="cancelInlineEdit('${id}')">취소</button>
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
 
@@ -1343,7 +1343,7 @@
                     hideLoading();
                 })
                 .catch(err => {
-                    console.error('?섏젙 以??ㅻ쪟:', err);
+                    console.error('?ㅻ쪟 諛쒖깮:', err);
                     alert('?쒕쾭 ?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
                     hideLoading();
                 });
@@ -1359,6 +1359,11 @@
             document.getElementById('description').value = '';
         }
 
+        // 인라인 수정 취소 (데이터 복구)
+        function cancelInlineEdit(id) {
+            renderCurrentSheet();
+        }
+
         // 데이터 등록 (안전한 동기화 방식)
         // ?곗씠???깅줉 (?덉쟾???숆린??諛⑹떇 + ?먮룞 由щ줈??
         function saveData() {
@@ -1366,7 +1371,7 @@
             const description = document.getElementById('description').value.trim();
 
             if (!term || !description) {
-                alert('?댁슜??紐⑤몢 ?낅젰?댁＜?몄슂.');
+                alert('?댁슜???낅젰?댁＜?몄슂.');
                 return;
             }
 
@@ -1399,7 +1404,7 @@
                     fetchCurrentTabData();
                 })
                 .catch(err => {
-                    console.error('?깅줉 ?ㅻ쪟:', err);
+                    console.error('?ㅻ쪟 諛쒖깮:', err);
                     alert('?쒕쾭 ?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
                     hideLoading();
                 });
