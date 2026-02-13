@@ -1401,6 +1401,8 @@
                     }
 
                     currentSort = 'newest';
+                    document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll(`[data-sort="newest"]`).forEach(btn => btn.classList.add('active'));
                     fetchCurrentTabData();
                 })
                 .catch(err => {
@@ -1710,7 +1712,7 @@
             showLoading();
 
             // API가 다중 삭제를 지원하므로(ids 파라미터), 한 번에 요청
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}`;
 
             fetch(url)
                 .then(res => res.json())
@@ -1812,7 +1814,7 @@
 
             showLoading(); // 이동 중...
 
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
+            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
 
             fetch(url)
                 .then(res => res.json())
