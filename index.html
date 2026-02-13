@@ -903,14 +903,53 @@
             if (e.key === 'Enter') submitPassword();
         }
 
-        // 로딩 표시
+        // 똑똑한 로딩 알림창 (타이머 적용)
+        let loadingTimer1, loadingTimer2;
+
         function showLoading() {
-            document.getElementById('loadingOverlay').classList.remove('hidden');
+            const overlay = document.getElementById('loadingOverlay');
+            let msg = document.getElementById('loadingMessage');
+
+            // 메시지 요소 동적 생성 (HTML 수정 불필요)
+            if (!msg) {
+                msg = document.createElement('p');
+                msg.id = 'loadingMessage';
+                msg.style.cssText = 'margin-top: 20px; font-size: 1rem; font-weight: 500; min-height: 1.5em; text-align: center; color: #fff; transition: opacity 0.5s; opacity: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.3);';
+                overlay.appendChild(msg);
+            }
+
+            // 초기화
+            msg.textContent = '';
+            msg.style.opacity = '0';
+            msg.style.color = '#fff';
+            overlay.classList.remove('hidden');
+
+            // 3초 후: 안심 메시지
+            loadingTimer1 = setTimeout(() => {
+                msg.textContent = '☁️ 안전하게 저장하고 있어요...';
+                msg.style.opacity = '1';
+            }, 3000);
+
+            // 8초 후: 지연 안내 메시지
+            loadingTimer2 = setTimeout(() => {
+                msg.textContent = '🐢 서버가 조금 바쁘네요, 잠시만 기다려주세요...';
+                msg.style.color = '#ffeb3b'; // 노란색으로 주의 환기
+            }, 8000);
         }
 
-        // 로딩 숨기기
         function hideLoading() {
-            document.getElementById('loadingOverlay').classList.add('hidden');
+            // 타이머 취소
+            clearTimeout(loadingTimer1);
+            clearTimeout(loadingTimer2);
+
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+
+            const msg = document.getElementById('loadingMessage');
+            if (msg) {
+                msg.textContent = '';
+                msg.style.opacity = '0';
+            }
         }
 
         // 현재 탭만 불러오기 (초기 로딩 속도 개선)
