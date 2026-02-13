@@ -1073,6 +1073,18 @@
             const card = document.querySelector(`.card[data-id="${id}"]`);
             const isEditing = card.classList.contains('editing');
 
+            // 다른 카드가 이미 수정 중인지 확인 (자신이 수정 중이 아닐 때만 체크)
+            if (!isEditing) {
+                const otherEditingCard = document.querySelector('.card.editing');
+                if (otherEditingCard) {
+                    alert('이미 수정 중인 항목이 있습니다. 먼저 완료하거나 취소해주세요.');
+                    otherEditingCard.scrollIntoView({ behavior: 'smooth', block: 'center' }); // 수정 중인 곳으로 이동
+                    otherEditingCard.classList.add('highlight-pulse'); // 강조 효과 (CSS 필요하지만 없어도 무방)
+                    setTimeout(() => otherEditingCard.classList.remove('highlight-pulse'), 1000);
+                    return;
+                }
+            }
+
             if (isEditing) {
                 // 수정 취소 (캐시에서 원본 데이터 복원)
                 const id = card.getAttribute('data-id');
