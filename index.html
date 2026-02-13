@@ -1648,17 +1648,22 @@
             }
 
             // 비밀번호 포함하여 전송
-            fetch(`${API_URL}?action=reorder&id=${id}&direction=${serverDirection}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`)
+            showLoading();
+
+            fetch(`${API_URL}?action=reorder&id=${id}&direction=${serverDirection}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}`)
                 .then(res => res.json())
                 .then(result => {
                     if (result.status !== 'success') {
                         console.error(result.message);
                         alert('서버 저장 중 오류가 발생했습니다: ' + result.message);
+                        // 실패 시 복구 로직이 없어서 아쉽지만, 새로고침하면 원복됨
                     }
+                    hideLoading();
                 })
                 .catch(err => {
                     console.error('순서 변경 서버 요청 실패:', err);
                     alert('서버와 통신 중 오류가 발생했습니다.');
+                    hideLoading();
                 });
         }
 
