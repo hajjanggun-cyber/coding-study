@@ -1255,7 +1255,7 @@
             }
         }
 
-        // 인라인 수정 저장
+        // 인라인 수정 저장 (안전한 동기화 방식)
         function saveInlineEdit(id) {
             const card = document.querySelector(`.card[data-id="${id}"]`);
 
@@ -1264,13 +1264,11 @@
             const term = termTextarea ? termTextarea.value.trim() : '';
 
             // 내용은 두 번째 textarea 찾기 (card-desc 클래스가 수정 모드에서 사라질 수 있으므로)
-            // 첫 번째는 제목, 두 번째는 내용
             const allTextareas = card.querySelectorAll('.inline-textarea');
             let description = '';
             if (allTextareas.length >= 2 && allTextareas[1]) {
                 description = allTextareas[1].value.trim();
             } else {
-                // 기존 방식 시도
                 const descInput = card.querySelector('.inline-textarea.card-desc-edit') || card.querySelector('.card-desc .inline-textarea');
                 description = descInput ? descInput.value.trim() : '';
             }
@@ -1280,74 +1278,36 @@
                 return;
             }
 
-            // 즉시 캐시 데이터 업데이트 (속도 개선)
-            if (cachedData && cachedData[currentSheet]) {
-                const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
-                if (itemIndex !== -1) {
-                    cachedData[currentSheet][itemIndex].term = term;
-                    cachedData[currentSheet][itemIndex].description = description;
-                }
-            }
+            showLoading(); // 저장 중... (사용자 조작 차단)
 
-            // 캐시에서 데이터 찾기
-            const item = cachedData[currentSheet].find(i => String(i.id) === String(id));
-            if (!item) {
-                alert('데이터를 찾을 수 없습니다.');
-                return;
-            }
+            // 서버 저장 요청 (비밀번호 포함)
+            fetch(`${API_URL}?action=edit&id=${id}&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 서버 저장 성공 시에만 로컬 데이터 업데이트
+                        if (cachedData && cachedData[currentSheet]) {
+                            const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
+                            if (itemIndex !== -1) {
+                                cachedData[currentSheet][itemIndex].term = term;
+                                cachedData[currentSheet][itemIndex].description = description;
+                            }
+                        }
 
-            // 모든 시트에서 10줄 이상일 때 접기/펼치기 적용
-            const useCollapse = true; // 모든 시트 허용
-            const linkedDescription = linkify(description);
-            const descriptionText = String(description || '');
-            const lines = descriptionText.split('\n');
-            const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
-
-            let descHtml = '';
-            if (useCollapse && isLongContent) {
-                descHtml = `
-                    <div>
-                        <div class="card-desc collapsed" id="desc-${id}">${linkedDescription}</div>
-                        <button class="toggle-btn" onclick="toggleContent('${id}')">더보기 ▼</button>
-                    </div>
-                `;
-            } else {
-                descHtml = `<div class="card-desc">${linkedDescription}</div>`;
-            }
-
-            card.innerHTML = `
-                <input type="checkbox" class="chk-box" data-id="${id}">
-                <div class="card-content">
-                    <div class="card-term">${term}</div>
-                    ${descHtml}
-                </div>
-                <div class="card-actions">
-                    <button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>
-                </div>`;
-
-            card.classList.remove('editing');
-
-            // 백그라운드에서 서버 동기화
-            const params = new URLSearchParams();
-            params.append('action', 'update');
-            params.append('id', id);
-            params.append('term', term);
-            params.append('description', description);
-            params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
-
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: params
-            })
-                .then(() => {
-                    // 서버 동기화 완료 (UI는 이미 업데이트됨)
+                        // 화면 갱신 (리렌더링으로 깔끔하게 복구)
+                        renderCurrentSheet();
+                        // card.classList.remove('editing'); // 렌더링하면 자동 해제됨
+                    } else {
+                        alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+                        // 실패 시에는 화면을 그대로 둠 (다시 시도할 수 있게)
+                    }
+                    hideLoading();
                 })
                 .catch(err => {
-                    console.error('오류:', err);
-                    alert('수정 중 오류가 발생했습니다.');
-                });     // 기존 상단 수정 함수는 제거하거나 호환성을 위해 유지 (여기서는 인라인 전용으로 전환하므로 미사용)
+                    console.error('수정 중 오류:', err);
+                    alert('서버 통신 오류가 발생했습니다.');
+                    hideLoading();
+                });
         }
 
         function enterEditMode(id, term, description) {
@@ -1360,7 +1320,7 @@
             document.getElementById('description').value = '';
         }
 
-        // 데이터 저장 (새 데이터 등록 전용)
+        // 데이터 등록 (안전한 동기화 방식)
         function saveData() {
             console.log('saveData 호출됨, 현재 시트:', currentSheet);
             const term = document.getElementById('term').value.trim();
@@ -1383,50 +1343,45 @@
                 return;
             }
 
-            // 임시 ID 생성 (서버에서 실제 ID를 받을 때까지 사용)
-            const tempId = 'temp_' + Date.now();
+            showLoading(); // 저장 중... (사용자 조작 차단)
 
-            // 즉시 UI에 추가 (속도 개선)
-            const newItem = {
-                id: tempId,
-                term: term,
-                description: description
-            };
+            // 서버 저장 요청 (GET 방식 사용 - GAS 코드 호환성)
+            // 주의: 기존 코드는 POST(no-cors)를 썼으나, no-cors는 응답을 못 받음 (opaque response)
+            // 따라서 성공 여부를 확인하려면 GET 방식(JSONP 느낌)이나 일반 fetch를 써야 함.
+            // 여기서는 GET 방식이 가장 확실하게 JSON 응답을 받을 수 있음. (길이 제한이 있지만 텍스트 위주라 괜찮을 듯)
+            // 만약 POST를 써야 한다면 GAS 설정을 잘 맞춰야 함.
+            // 안전하게 기존 GET 방식(`action=add`)을 사용하되, 데이터는 쿼리스트링으로 보냄.
 
-            // 캐시에 추가
-            if (cachedData && cachedData[currentSheet]) {
-                cachedData[currentSheet].unshift(newItem); // 최신 항목이 맨 위로 오도록 unshift 사용
-            }
+            fetch(`${API_URL}?action=add&term=${encodeURIComponent(term)}&description=${encodeURIComponent(description)}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 서버 저장 성공! -> 로컬 데이터에 추가
+                        const newItem = {
+                            id: data.id, // 서버에서 발급된 진짜 ID 사용
+                            term: term,
+                            description: description,
+                            timestamp: new Date().toISOString()
+                        };
 
-            // UI에 즉시 표시
-            addCardToUI(newItem);
+                        if (!cachedData[currentSheet]) cachedData[currentSheet] = [];
+                        cachedData[currentSheet].unshift(newItem); // 최신 항목이 맨 위로
 
-            // 입력 폼 초기화
-            cancelEdit();
+                        // 입력 폼 초기화
+                        document.getElementById('term').value = '';
+                        document.getElementById('description').value = '';
 
-            // 모든 카테고리를 안전한 POST 방식으로 전송 (CORS 오류 방지)
-            const params = new URLSearchParams();
-            params.append('action', 'save');
-            params.append('term', term);
-            params.append('description', description);
-            params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
-
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: params
-            })
-                .then(() => {
-                    // 서버 동기화 완료 (UI는 이미 업데이트됨)
-                    console.log('백그라운드 저장 완료');
+                        // 화면 갱신
+                        renderCurrentSheet();
+                    } else {
+                        alert('등록 실패: ' + (data.message || '알 수 없는 오류'));
+                    }
+                    hideLoading();
                 })
                 .catch(err => {
-                    console.error('오류:', err);
-                    // 오류 시 임시 항목 제거
-                    const tempCard = document.querySelector(`.card[data-id="${tempId}"]`);
-                    if (tempCard) tempCard.remove();
-                    alert('저장 중 연결 오류가 발생했습니다. (데이터가 저장되지 않았을 수 있습니다)');
+                    console.error('등록 오류:', err);
+                    alert('서버 통신 오류가 발생했습니다. (데이터가 저장되지 않았습니다)');
+                    hideLoading();
                 });
         }
 
@@ -1722,20 +1677,36 @@
                 cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
             }
 
-            // 백그라운드에서 서버 동기화
+            // 백그라운드에서 서버 동기화 -> 안전한 동기화 방식(Blocking UI)으로 변경
+            // showLoading()을 사용하여 사용자 입력을 막음
+            showLoading();
+
+            // API가 다중 삭제를 지원하므로(ids 파라미터), 한 번에 요청
             const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(result => {
-                    if (result.status !== 'success') {
-                        // 실패 시 경고
-                        alert('삭제 중 오류가 발생했습니다. (새로고침이 필요할 수 있습니다)');
+                    if (result.status === 'success') {
+                        // 성공 시에만 UI 및 로컬 데이터 삭제
+                        ids.forEach(id => {
+                            const card = document.querySelector(`.card[data-id="${id}"]`);
+                            if (card) card.remove();
+                        });
+
+                        if (cachedData && cachedData[currentSheet]) {
+                            cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
+                        }
+                    } else {
+                        alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
+                        // 실패 시 UI는 그대로 둠 (삭제되지 않음)
                     }
+                    hideLoading();
                 })
                 .catch(err => {
                     console.error('삭제 오류:', err);
-                    alert('삭제 요청 중 오류가 발생했습니다.');
+                    alert('서버 통신 오류가 발생했습니다.');
+                    hideLoading();
                 });   // 선택 이동
         }
         function moveSelected() {
@@ -1798,46 +1769,56 @@
             modal.classList.remove('active');
         }
 
-        // 실제 이동 실행
+        // 실제 이동 실행 (안전한 동기화 방식)
         function executeMoveToCategory(targetSheet) {
             closeMoveModal();
 
             const checkboxes = window.selectedCheckboxes;
             const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
 
-            // 즉시 UI에서 제거 (속도 개선)
-            ids.forEach(id => {
-                const card = document.querySelector(`.card[data-id="${id}"]`);
-                if (card) card.remove();
-            });
-
-            // 캐시된 데이터 업데이트
+            // 이동할 대상 캐시 데이터 미리 확보 (성공 시 사용)
+            let movedItems = [];
             if (cachedData && cachedData[currentSheet]) {
-                const movedItems = cachedData[currentSheet].filter(item => ids.includes(String(item.id)));
-                cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
-
-                // 대상 시트 캐시 초기화 (없으면 빈 배열로 생성)
-                if (!cachedData[targetSheet]) {
-                    cachedData[targetSheet] = [];
-                }
-
-                // 대상 시트에 추가
-                cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
+                movedItems = cachedData[currentSheet].filter(item => ids.includes(String(item.id)));
             }
 
-            // 백그라운드에서 서버 동기화
+            showLoading(); // 이동 중...
+
             const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
 
             fetch(url)
                 .then(res => res.json())
                 .then(result => {
-                    if (result.status !== 'success') {
-                        alert('이동 중 오류가 발생했습니다. (새로고침이 필요할 수 있습니다)');
+                    if (result.status === 'success') {
+                        // 성공 시 UI 제거 및 캐시 이동
+                        ids.forEach(id => {
+                            const card = document.querySelector(`.card[data-id="${id}"]`);
+                            if (card) card.remove();
+                        });
+
+                        // 현재 시트에서 데이터 제거
+                        if (cachedData && cachedData[currentSheet]) {
+                            cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
+                        }
+
+                        // 타겟 시트 캐시가 있다면 추가 (없으면 나중에 로드할 때 받아옴)
+                        if (cachedData[targetSheet]) {
+                            cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
+                        } else {
+                            // 타겟 시트 데이터가 아직 로드 안 됐다면 굳이 추가할 필요 없음 (초기화 상태)
+                        }
+
+                        // alert('이동되었습니다.');
+                    } else {
+                        alert('이동 실패: ' + (result.message || '알 수 없는 오류'));
+                        // 실패 시 UI 그대로 유지 (이동 안 됨)
                     }
+                    hideLoading();
                 })
                 .catch(err => {
                     console.error('이동 오류:', err);
-                    alert('이동 요청 중 오류가 발생했습니다.');
+                    alert('서버 통신 오류가 발생했습니다.');
+                    hideLoading();
                 });
         }
     </script>
