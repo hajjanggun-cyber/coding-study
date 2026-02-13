@@ -828,7 +828,7 @@
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbzopNXwR0HQNFGi7TBZMxCvcZu0SXBJHKBaaM9UKTR_tVbHq-NCaDShxeCcpy-Ez5ZdwQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbxe-5UmQriyQ98CLs9zquSgRKB4Lz1pTllQLsfyuv7HGb7k7DsIVGK0-j30O2pIGtN32A/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -1652,19 +1652,25 @@
             // 비밀번호 포함하여 전송
             showLoading();
 
-            fetch(`${API_URL}?action=reorder&id=${id}&direction=${serverDirection}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status !== 'success') {
-                        console.error(result.message);
-                        alert('서버 저장 중 오류가 발생했습니다: ' + result.message);
-                        // 실패 시 복구 로직이 없어서 아쉽지만, 새로고침하면 원복됨
-                    }
+            const params = new URLSearchParams();
+            params.append('action', 'reorder');
+            params.append('id', id);
+            params.append('direction', serverDirection);
+            params.append('sheetName', currentSheet);
+            params.append('password', userPassword);
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공으로 간주 (no-cors 응답 읽기 불가)
                     hideLoading();
                 })
                 .catch(err => {
                     console.error('순서 변경 서버 요청 실패:', err);
-                    alert('서버와 통신 중 오류가 발생했습니다.');
+                    // alert('서버와 통신 중 오류가 발생했습니다.'); // 사용자 요청으로 에러 창 제거
                     hideLoading();
                 });
         }
@@ -1712,30 +1718,31 @@
             showLoading();
 
             // API가 다중 삭제를 지원하므로(ids 파라미터), 한 번에 요청
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`;
+            const params = new URLSearchParams();
+            params.append('action', 'delete');
+            params.append('ids', ids.join(','));
+            params.append('sheetName', currentSheet);
+            params.append('password', userPassword);
 
-            fetch(url)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        // 성공 시에만 UI 및 로컬 데이터 삭제
-                        ids.forEach(id => {
-                            const card = document.querySelector(`.card[data-id="${id}"]`);
-                            if (card) card.remove();
-                        });
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공 시 UI 및 로컬 데이터 삭제 (no-cors 응답 확인 불가하므로 성공 간주)
+                    ids.forEach(id => {
+                        const card = document.querySelector(`.card[data-id="${id}"]`);
+                        if (card) card.remove();
+                    });
 
-                        if (cachedData && cachedData[currentSheet]) {
-                            cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
-                        }
-                    } else {
-                        alert('삭제 실패: ' + (result.message || '알 수 없는 오류'));
-                        // 실패 시 UI는 그대로 둠 (삭제되지 않음)
+                    if (cachedData && cachedData[currentSheet]) {
+                        cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
                     }
                     hideLoading();
                 })
                 .catch(err => {
                     console.error('삭제 오류:', err);
-                    alert('서버 통신 오류가 발생했습니다.');
                     hideLoading();
                 });   // 선택 이동
         }
@@ -1814,40 +1821,39 @@
 
             showLoading(); // 이동 중...
 
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${encodeURIComponent(currentSheet)}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}&t=${new Date().getTime()}`;
+            const params = new URLSearchParams();
+            params.append('action', 'move');
+            params.append('ids', ids.join(','));
+            params.append('sheetName', currentSheet);
+            params.append('targetSheet', targetSheet);
+            params.append('password', userPassword);
 
-            fetch(url)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        // 성공 시 UI 제거 및 캐시 이동
-                        ids.forEach(id => {
-                            const card = document.querySelector(`.card[data-id="${id}"]`);
-                            if (card) card.remove();
-                        });
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공 시 UI 제거 및 캐시 이동
+                    ids.forEach(id => {
+                        const card = document.querySelector(`.card[data-id="${id}"]`);
+                        if (card) card.remove();
+                    });
 
-                        // 현재 시트에서 데이터 제거
-                        if (cachedData && cachedData[currentSheet]) {
-                            cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
-                        }
-
-                        // 타겟 시트 캐시가 있다면 추가 (없으면 나중에 로드할 때 받아옴)
-                        if (cachedData[targetSheet]) {
-                            cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
-                        } else {
-                            // 타겟 시트 데이터가 아직 로드 안 됐다면 굳이 추가할 필요 없음 (초기화 상태)
-                        }
-
-                        // alert('이동되었습니다.');
-                    } else {
-                        alert('이동 실패: ' + (result.message || '알 수 없는 오류'));
-                        // 실패 시 UI 그대로 유지 (이동 안 됨)
+                    // 현재 시트에서 데이터 제거
+                    if (cachedData && cachedData[currentSheet]) {
+                        cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
                     }
+
+                    // 타겟 시트 캐시가 있다면 추가 (없으면 나중에 로드할 때 받아옴)
+                    if (cachedData[targetSheet]) {
+                        cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
+                    }
+
                     hideLoading();
                 })
                 .catch(err => {
                     console.error('이동 오류:', err);
-                    alert('서버 통신 오류가 발생했습니다.');
                     hideLoading();
                 });
         }

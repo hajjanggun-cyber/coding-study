@@ -59,6 +59,14 @@ function doPost(e) {
       return saveData(params.term, params.description, sheetName);
     } else if (action === 'update') {
       return updateData(params.id, params.term, params.description, sheetName);
+    } else if (action === 'delete') {
+      return deleteData(params.ids, sheetName);
+    } else if (action === 'move') {
+      return moveData(params.ids, params.sheetName, params.targetSheet);
+    } else if (action === 'reorder') {
+      return reorderData(params.id, params.direction, sheetName);
+    } else if (action === 'load') { // POST로도 로드 가능하게 (선택사항)
+      return loadData(params.sort, sheetName);
     }
   } catch (err) {
     return createJsonResponse({ status: 'error', message: 'POST 처리 중 오류: ' + err.toString() });
