@@ -931,6 +931,8 @@
 
                     if (!cachedData) cachedData = {};
                     cachedData[currentSheet] = data;
+                    cachedData[currentSheet] = data;
+                    updateInputUI(currentSheet); // 초기 로드 시 UI 설정 (textarea 높이 등) 적용
                     renderCurrentSheet();
                     hideLoading();
                 })
@@ -997,66 +999,63 @@
                 renderCurrentSheet();
             }
 
+            // UI 업데이트 (입력창 라벨, placeholder, textarea 높이 등)
+            updateInputUI(sheetName);
+        }
+
+        // 입력 폼 UI 업데이트 함수 (탭 전환 및 초기 로드 시 사용)
+        function updateInputUI(sheetName) {
             const termInput = document.getElementById('term');
-            const termLabel = document.querySelector('.input-row .label'); // Specific selector for term label
-            const descLabel = document.querySelectorAll('.input-row .label')[1]; // Specific selector for description label
+            const termLabel = document.querySelector('.input-row .label');
+            const descLabel = document.querySelectorAll('.input-row .label')[1];
             const descInput = document.getElementById('description');
 
-            // 기본 세로 길이 (3줄)로 초기화
-            descInput.rows = 3;
+            // 기본 세로 길이 (10줄)로 초기화 - Coding, Prompt, URL, Ideas 탭에 적용됨
+            descInput.rows = 10;
 
+            // 탭별 UI 설정
             if (sheetName === 'Coding') {
-                document.getElementById('tab-coding').classList.add('active');
                 termInput.placeholder = '용어 (예: API, Variable)';
                 termLabel.textContent = '용어';
                 descLabel.textContent = '용어 설명';
             } else if (sheetName === 'Prompt') {
-                document.getElementById('tab-prompt').classList.add('active');
                 termInput.placeholder = '프롬프트 (예: 시를 써줘, 코드 리뷰해줘)';
                 termLabel.textContent = '프롬프트';
                 descLabel.textContent = '상세 설명';
             } else if (sheetName === 'URL') {
-                document.getElementById('tab-url').classList.add('active');
                 termInput.placeholder = '참고 제목 (예: 유용한 사이트)';
                 termLabel.textContent = '참고 제목';
                 descLabel.textContent = '참고 URL/설명';
             } else if (sheetName === 'Ideas') {
-                document.getElementById('tab-ideas').classList.add('active');
                 termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
                 termLabel.textContent = '아이디어 제목';
                 descLabel.textContent = '아이디어 상세 내용';
             } else if (sheetName === 'Jungri') {
-                document.getElementById('tab-jungri').classList.add('active');
                 termInput.placeholder = '강의 제목 (예: React 기초 강의)';
                 termLabel.textContent = '강의 제목';
                 descLabel.textContent = '강의 정리';
                 descInput.rows = 30; // 강의 정리도 길게
             } else if (sheetName === 'WorkProcess') {
-                document.getElementById('tab-workprocess').classList.add('active');
                 termInput.placeholder = '실전 제목 (예: 프로젝트 진행 과정)';
                 termLabel.textContent = '실전 제목';
                 descLabel.textContent = '실전 과정';
                 descInput.rows = 30; // 실전 과정도 길게
             } else if (sheetName === 'Customer') {
-                document.getElementById('tab-customer').classList.add('active');
                 termInput.placeholder = '손님 제목 (예: 홍길동)';
                 termLabel.textContent = '손님 제목';
                 descLabel.textContent = '손님 내용';
                 descInput.rows = 30; // 손님 내용도 길게
             } else if (sheetName === 'Visit') {
-                document.getElementById('tab-visit').classList.add('active');
                 termInput.placeholder = '방문 일정 (예: 2024-01-01)';
                 termLabel.textContent = '방문 일정';
                 descLabel.textContent = '방문 내용';
                 descInput.rows = 30; // 방문 내용도 길게
             } else if (sheetName === 'ItemDetail') {
-                document.getElementById('tab-itemdetail').classList.add('active');
                 termInput.placeholder = '물건 이름 (예: 냉장고)';
                 termLabel.textContent = '물건 이름';
                 descLabel.textContent = '세부 사항';
                 descInput.rows = 30; // 물건 세부 사항도 길게
             } else if (sheetName === 'Private') {
-                document.getElementById('tab-private').classList.add('active');
                 termInput.placeholder = '자료 제목 (예: 비밀번호)';
                 termLabel.textContent = '자료 제목';
                 descLabel.textContent = '자료 내용';
@@ -1066,9 +1065,6 @@
             // 입력 필드 초기화
             document.getElementById('term').value = '';
             document.getElementById('description').value = '';
-
-            // 렌더링은 위에서 이미 분기 처리되었으므로 중복 호출 제거
-            // (상단 if/else 블록에서 이미 처리됨)
         }
 
         // 인라인 수정 모드 토글
