@@ -731,9 +731,8 @@
         <div class="password-box">
             <h3>🔒 보안 접속</h3>
             <p style="font-size:13px; color:#666; margin-bottom:20px;">설정하신 비밀번호를 입력해주세요.</p>
-            <input type="password" id="passwordInput" class="password-input" placeholder="비밀번호 입력"
-                onkeypress="handleEnter(event)">
-            <button class="password-submit" onclick="submitPassword()">접속하기</button>
+            <input type="password" id="passwordInput" class="password-input" placeholder="비밀번호 입력">
+            <button class="password-submit" id="passwordSubmitBtn">접속하기</button>
         </div>
     </div>
     <!-- 로딩 인디케이터 -->
@@ -867,6 +866,20 @@
 
         // 페이지 로드 시 비밀번호 먼저 물어보기
         window.onload = function () {
+            // 이벤트 리스너 등록 (함수가 정의된 후에 실행)
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordBtn = document.getElementById('passwordSubmitBtn');
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') submitPassword();
+                });
+            }
+            
+            if (passwordBtn) {
+                passwordBtn.addEventListener('click', submitPassword);
+            }
+            
             // 로컬 스토리지에 저장된 비밀번호가 있는지 확인 (선택 사항)
             const savedPw = localStorage.getItem('app_password');
             if (savedPw) {
@@ -875,7 +888,7 @@
                 showLoading();
                 fetchCurrentTabData();
             } else {
-                document.getElementById('passwordInput').focus();
+                if (passwordInput) passwordInput.focus();
             }
         };
 
@@ -896,11 +909,6 @@
             document.getElementById('passwordModal').classList.add('hidden');
             showLoading();
             fetchCurrentTabData();
-        }
-
-        // 엔터키 처리
-        function handleEnter(e) {
-            if (e.key === 'Enter') submitPassword();
         }
 
         // 똑똑한 로딩 알림창 (타이머 적용)
@@ -957,29 +965,61 @@
             // 비밀번호 포함하여 요청
             const url = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}&password=${encodeURIComponent(userPassword)}`;
 
-            fetch(url)
-                .then(res => res.json())
-                .then(data => {
+            console.log('🔍 요청 URL:', url);
+
+            // 타임아웃 설정 (15초)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            fetch(url, { signal: controller.signal })
+                .then(res => {
+                    clearTimeout(timeoutId);
+                    console.log('✅ 응답 상태:', res.status, res.statusText);
+                    
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    }
+                    
+                    return res.text();
+                })
+                .then(text => {
+                    console.log('📄 응답 내용 (첫 200자):', text.substring(0, 200));
+                    
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error('❌ JSON 파싱 실패:', e);
+                        throw new Error('서버 응답이 JSON 형식이 아닙니다: ' + text.substring(0, 100));
+                    }
+                    
                     // 비밀번호 오류 체크
-                    if (data.status === 'error' && data.message.includes('비밀번호')) {
-                        alert('비밀번호가 틀렸습니다.');
-                        localStorage.removeItem('app_password'); // 잘못된 비번 삭제
+                    if (data.status === 'error' && data.message && data.message.includes('비밀번호')) {
+                        alert('❌ 비밀번호가 틀렸습니다.');
+                        localStorage.removeItem('app_password');
                         document.getElementById('passwordModal').classList.remove('hidden');
-                        document.getElementById('loadingOverlay').classList.add('hidden');
+                        hideLoading();
                         return;
                     }
 
                     if (!cachedData) cachedData = {};
                     cachedData[currentSheet] = data;
-                    cachedData[currentSheet] = data;
-                    updateInputUI(currentSheet); // 초기 로드 시 UI 설정 (textarea 높이 등) 적용
+                    updateInputUI(currentSheet);
                     renderCurrentSheet();
                     hideLoading();
                 })
                 .catch(err => {
-                    console.error('데이터 로드 오류:', err);
+                    clearTimeout(timeoutId);
+                    console.error('❌ 오류:', err);
                     hideLoading();
-                    alert('데이터를 불러오는 중 오류가 발생했습니다.');
+                    
+                    if (err.name === 'AbortError') {
+                        alert('⏱️ 서버 응답 시간 초과 (15초)\n\n문제 해결:\n1. API_URL 확인 (F12 Console에 표시됨)\n2. Google Apps Script 배포 확인\n3. 비밀번호 확인 (GAS: APP_PASSWORD)');
+                    } else {
+                        alert('❌ 오류: ' + err.message + '\n\nF12 개발자도구 Console 탭을 확인하세요.');
+                    }
+                    
+                    document.getElementById('passwordModal').classList.remove('hidden');
                 });
         }
 
