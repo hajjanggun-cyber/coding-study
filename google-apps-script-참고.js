@@ -55,7 +55,9 @@ function doPost(e) {
     const action = params.action;
     const sheetName = params.sheetName || 'Coding';
 
-    if (action === 'save') {
+    if (action === 'loadAll') {
+      return loadAllData();
+    } else if (action === 'save') {
       return saveData(params.term, params.description, sheetName);
     } else if (action === 'update') {
       return updateData(params.id, params.term, params.description, sheetName);
@@ -115,33 +117,50 @@ function loadData(sortType, sheetName) {
   return createJsonResponse(result);
 }
 
-// ✅ 개선: UUID 사용으로 ID 충돌 방지
 function saveData(term, description, sheetName) {
   try {
+    Logger.log('saveData 호출: term=' + term + ', sheet=' + sheetName);
+    
     const sheet = getSheet(sheetName);
-    // UUID 대신 타임스탬프 기반 ID 생성 (더 간단하고 안정적)
     const newId = new Date().getTime();
+    
+    Logger.log('새 ID 생성: ' + newId);
     sheet.appendRow([newId, term, description]);
+    Logger.log('데이터 추가 완료');
+    
     return createJsonResponse({ status: 'success', id: newId });
   } catch (error) {
+    Logger.log('saveData 오류: ' + error.toString());
     return createJsonResponse({ status: 'error', message: error.toString() });
   }
 }
 
 function updateData(id, term, description, sheetName) {
   try {
+    Logger.log('updateData 호출: ID=' + id + ', term=' + term + ', sheet=' + sheetName);
+    
     const sheet = getSheet(sheetName);
     const data = sheet.getDataRange().getValues();
     const idStr = String(id).trim();
+    
+    Logger.log('전체 데이터 행 수: ' + data.length);
+    
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]).trim() === idStr) {
+        Logger.log('ID 일치 발견: 행 ' + (i + 1));
         sheet.getRange(i + 1, 2).setValue(term);
         sheet.getRange(i + 1, 3).setValue(description);
+        Logger.log('업데이트 완료');
         return createJsonResponse({ status: 'success' });
       }
     }
+    
+    Logger.log('ID를 찾을 수 없음: ' + idStr);
     return createJsonResponse({ status: 'error', message: 'ID를 찾을 수 없습니다.' });
-  } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
+  } catch (error) { 
+    Logger.log('updateData 오류: ' + error.toString());
+    return createJsonResponse({ status: 'error', message: error.toString() }); 
+  }
 }
 
 function deleteData(ids, sheetName) {

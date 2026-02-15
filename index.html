@@ -827,7 +827,7 @@
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycby48IuZ959-Di_gZXKCtKL_OjUVNZ3foRRdLpY7XrHLhmIdkkbzVbGZ30CFgipisKDBQA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwLATdpfQNaZORRWg-5aGfTyxr2KWY6KLnUVpY4F8InkKxqbuadJImE6WsIbiNxSj-QIA/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -962,12 +962,21 @@
 
         // 현재 탭만 불러오기 (초기 로딩 속도 개선)
         function fetchCurrentTabData() {
+            console.log('📥 fetchCurrentTabData 호출 - 시트:', currentSheet);
+
             // 비밀번호 포함하여 요청
             const url = `${API_URL}?action=load&sheetName=${currentSheet}&t=${new Date().getTime()}&password=${encodeURIComponent(userPassword)}`;
 
+            console.log('🔗 요청 URL:', url.substring(0, 100) + '...');
+
             fetch(url)
-                .then(res => res.json())
+                .then(res => {
+                    console.log('📡 응답 받음');
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('📦 데이터 파싱 완료, 항목 수:', Array.isArray(data) ? data.length : '객체');
+
                     // 비밀번호 오류 체크
                     if (data.status === 'error' && data.message.includes('비밀번호')) {
                         alert('비밀번호가 틀렸습니다.');
@@ -979,13 +988,13 @@
 
                     if (!cachedData) cachedData = {};
                     cachedData[currentSheet] = data;
-                    cachedData[currentSheet] = data;
                     updateInputUI(currentSheet); // 초기 로드 시 UI 설정 (textarea 높이 등) 적용
                     renderCurrentSheet();
                     hideLoading();
+                    console.log('✅ 데이터 로드 및 렌더링 완료');
                 })
                 .catch(err => {
-                    console.error('데이터 로드 오류:', err);
+                    console.error('❌ 데이터 로드 오류:', err);
                     hideLoading();
                     alert('데이터를 불러오는 중 오류가 발생했습니다.');
                 });
@@ -1302,10 +1311,16 @@
             }
         }
 
-        // 인라인 수정 저장 (안전한 동기화 방식)
-        // 인라인 수정 저장 (안전한 동기화 방식 + POST)
+        // 인라인 수정 저장 (개선된 버전)
         function saveInlineEdit(id) {
+            console.log('🔧 saveInlineEdit 호출됨 - ID:', id);
+
             const card = document.querySelector(`.card[data-id="${id}"]`);
+            if (!card) {
+                console.error('❌ 카드를 찾을 수 없음:', id);
+                alert('항목을 찾을 수 없습니다.');
+                return;
+            }
 
             const termTextarea = card.querySelector('.card-term .inline-textarea');
             const term = termTextarea ? termTextarea.value.trim() : '';
@@ -1318,6 +1333,8 @@
                 const descInput = card.querySelector('.inline-textarea.card-desc-edit') || card.querySelector('.card-desc .inline-textarea');
                 description = descInput ? descInput.value.trim() : '';
             }
+
+            console.log('📝 수정 내용:', { id, term, description: description.substring(0, 50) + '...' });
 
             if (!term || !description) {
                 alert('내용을 입력해주세요.');
@@ -1334,19 +1351,34 @@
             params.append('sheetName', currentSheet);
             params.append('password', userPassword);
 
+            console.log('📤 서버로 전송:', {
+                action: 'update',
+                id: id,
+                sheetName: currentSheet,
+                url: API_URL
+            });
+
             fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: params
             })
                 .then(() => {
-                    // ✅ 수정 후 서버에서 실제 데이터를 다시 로드하여 ID 동기화
-                    fetchCurrentTabData();
+                    console.log('✅ POST 요청 완료 (no-cors 모드)');
+                    // no-cors 모드에서는 응답을 읽을 수 없으므로 2초 대기 후 재로드
+                    setTimeout(() => {
+                        console.log('🔄 데이터 재로드 시작');
+                        fetchCurrentTabData();
+                    }, 2000); // 서버 처리 시간 고려
                 })
                 .catch(err => {
-                    console.error('오류 발생:', err);
-                    // ⚠️ 실패해도 재로드하여 서버 상태와 동기화
-                    fetchCurrentTabData();
+                    console.error('❌ POST 요청 실패:', err);
+                    hideLoading();
+                    alert('서버 통신 중 오류가 발생했습니다. 다시 시도해주세요.');
+                    // 오류 발생 시에도 재로드 시도
+                    setTimeout(() => {
+                        fetchCurrentTabData();
+                    }, 1000);
                 });
         }
 
@@ -1365,11 +1397,12 @@
             renderCurrentSheet();
         }
 
-        // 데이터 등록 (안전한 동기화 방식)
-        // 데이터 등록 (안전한 동기화 방식 + 자동 리로드)
+        // 데이터 등록 (개선된 버전)
         function saveData() {
             const term = document.getElementById('term').value.trim();
             const description = document.getElementById('description').value.trim();
+
+            console.log('💾 saveData 호출 - 용어:', term);
 
             if (!term || !description) {
                 alert('내용을 입력해주세요.');
@@ -1385,12 +1418,15 @@
             params.append('sheetName', currentSheet);
             params.append('password', userPassword);
 
+            console.log('📤 신규 등록 전송:', { term, sheetName: currentSheet });
+
             fetch(API_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: params
             })
                 .then(() => {
+                    console.log('✅ POST 요청 완료');
                     document.getElementById('term').value = '';
                     document.getElementById('description').value = '';
 
@@ -1404,10 +1440,14 @@
                     currentSort = 'newest';
                     document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
                     document.querySelectorAll(`[data-sort="newest"]`).forEach(btn => btn.classList.add('active'));
-                    fetchCurrentTabData();
+
+                    // 서버 처리 대기 후 재로드
+                    setTimeout(() => {
+                        fetchCurrentTabData();
+                    }, 2000);
                 })
                 .catch(err => {
-                    console.error('오류 발생:', err);
+                    console.error('❌ 저장 오류:', err);
                     alert('서버 통신 오류가 발생했습니다.');
                     hideLoading();
                 });
@@ -1745,8 +1785,23 @@
                 .catch(err => {
                     console.error('삭제 오류:', err);
                     hideLoading();
-                });   // 선택 이동
+                });
         }
+
+        // 비밀번호 모달 표시
+        function showPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                const input = document.getElementById('passwordInput');
+                if (input) {
+                    setTimeout(() => input.focus(), 100);
+                }
+            }
+        }
+
+        // 선택 이동
         function moveSelected() {
             const checkboxes = document.querySelectorAll('.chk-box:checked');
             if (checkboxes.length === 0) {
