@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -324,7 +324,8 @@
 
         /* 접기/펼치기 기능 */
         .card-desc.collapsed {
-            max-height: 1.5em;
+            max-height: 15em;
+            /* 10줄 높이 (1.5 * 10 = 15em) */
             overflow: hidden;
             position: relative;
         }
@@ -827,7 +828,7 @@
     <script>
         // 구글 웹 앱 URL (최종 배포 버전)
         // 구글 웹 앱 URL (최종 배포 버전)
-        const API_URL = "https://script.google.com/macros/s/AKfycbzopNXwR0HQNFGi7TBZMxCvcZu0SXBJHKBaaM9UKTR_tVbHq-NCaDShxeCcpy-Ez5ZdwQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwvFySIGx7eENpY9-HyvFbltuw9iR3C7-D3xDr2phBgQiA-HotEoS_d2YkOIZG7PS96yg/exec";
 
         let currentSort = 'newest';
         let currentSheet = 'Coding'; // 현재 선택된 시트이름 (탭 상태)
@@ -902,14 +903,53 @@
             if (e.key === 'Enter') submitPassword();
         }
 
-        // 로딩 표시
+        // 똑똑한 로딩 알림창 (타이머 적용)
+        let loadingTimer1, loadingTimer2;
+
         function showLoading() {
-            document.getElementById('loadingOverlay').classList.remove('hidden');
+            const overlay = document.getElementById('loadingOverlay');
+            let msg = document.getElementById('loadingMessage');
+
+            // 메시지 요소 동적 생성 (HTML 수정 불필요)
+            if (!msg) {
+                msg = document.createElement('p');
+                msg.id = 'loadingMessage';
+                msg.style.cssText = 'margin-top: 20px; font-size: 1rem; font-weight: 500; min-height: 1.5em; text-align: center; color: #fff; transition: opacity 0.5s; opacity: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.3);';
+                overlay.appendChild(msg);
+            }
+
+            // 초기화
+            msg.textContent = '';
+            msg.style.opacity = '0';
+            msg.style.color = '#fff';
+            overlay.classList.remove('hidden');
+
+            // 3초 후: 안심 메시지
+            loadingTimer1 = setTimeout(() => {
+                msg.textContent = '☁️ 안전하게 저장하고 있어요...';
+                msg.style.opacity = '1';
+            }, 3000);
+
+            // 8초 후: 지연 안내 메시지
+            loadingTimer2 = setTimeout(() => {
+                msg.textContent = '🐢 서버가 조금 바쁘네요, 잠시만 기다려주세요...';
+                msg.style.color = '#ffeb3b'; // 노란색으로 주의 환기
+            }, 8000);
         }
 
-        // 로딩 숨기기
         function hideLoading() {
-            document.getElementById('loadingOverlay').classList.add('hidden');
+            // 타이머 취소
+            clearTimeout(loadingTimer1);
+            clearTimeout(loadingTimer2);
+
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden');
+
+            const msg = document.getElementById('loadingMessage');
+            if (msg) {
+                msg.textContent = '';
+                msg.style.opacity = '0';
+            }
         }
 
         // 현재 탭만 불러오기 (초기 로딩 속도 개선)
@@ -931,6 +971,8 @@
 
                     if (!cachedData) cachedData = {};
                     cachedData[currentSheet] = data;
+                    cachedData[currentSheet] = data;
+                    updateInputUI(currentSheet); // 초기 로드 시 UI 설정 (textarea 높이 등) 적용
                     renderCurrentSheet();
                     hideLoading();
                 })
@@ -997,66 +1039,63 @@
                 renderCurrentSheet();
             }
 
+            // UI 업데이트 (입력창 라벨, placeholder, textarea 높이 등)
+            updateInputUI(sheetName);
+        }
+
+        // 입력 폼 UI 업데이트 함수 (탭 전환 및 초기 로드 시 사용)
+        function updateInputUI(sheetName) {
             const termInput = document.getElementById('term');
-            const termLabel = document.querySelector('.input-row .label'); // Specific selector for term label
-            const descLabel = document.querySelectorAll('.input-row .label')[1]; // Specific selector for description label
+            const termLabel = document.querySelector('.input-row .label');
+            const descLabel = document.querySelectorAll('.input-row .label')[1];
             const descInput = document.getElementById('description');
 
-            // 기본 세로 길이 (3줄)로 초기화
-            descInput.rows = 3;
+            // 기본 세로 길이 (10줄)로 초기화 - Coding, Prompt, URL, Ideas 탭에 적용됨
+            descInput.rows = 10;
 
+            // 탭별 UI 설정
             if (sheetName === 'Coding') {
-                document.getElementById('tab-coding').classList.add('active');
                 termInput.placeholder = '용어 (예: API, Variable)';
                 termLabel.textContent = '용어';
                 descLabel.textContent = '용어 설명';
             } else if (sheetName === 'Prompt') {
-                document.getElementById('tab-prompt').classList.add('active');
                 termInput.placeholder = '프롬프트 (예: 시를 써줘, 코드 리뷰해줘)';
                 termLabel.textContent = '프롬프트';
                 descLabel.textContent = '상세 설명';
             } else if (sheetName === 'URL') {
-                document.getElementById('tab-url').classList.add('active');
                 termInput.placeholder = '참고 제목 (예: 유용한 사이트)';
                 termLabel.textContent = '참고 제목';
                 descLabel.textContent = '참고 URL/설명';
             } else if (sheetName === 'Ideas') {
-                document.getElementById('tab-ideas').classList.add('active');
                 termInput.placeholder = '아이디어 제목 (예: 앱 기획 안)';
                 termLabel.textContent = '아이디어 제목';
                 descLabel.textContent = '아이디어 상세 내용';
             } else if (sheetName === 'Jungri') {
-                document.getElementById('tab-jungri').classList.add('active');
                 termInput.placeholder = '강의 제목 (예: React 기초 강의)';
                 termLabel.textContent = '강의 제목';
                 descLabel.textContent = '강의 정리';
                 descInput.rows = 30; // 강의 정리도 길게
             } else if (sheetName === 'WorkProcess') {
-                document.getElementById('tab-workprocess').classList.add('active');
                 termInput.placeholder = '실전 제목 (예: 프로젝트 진행 과정)';
                 termLabel.textContent = '실전 제목';
                 descLabel.textContent = '실전 과정';
                 descInput.rows = 30; // 실전 과정도 길게
             } else if (sheetName === 'Customer') {
-                document.getElementById('tab-customer').classList.add('active');
                 termInput.placeholder = '손님 제목 (예: 홍길동)';
                 termLabel.textContent = '손님 제목';
                 descLabel.textContent = '손님 내용';
                 descInput.rows = 30; // 손님 내용도 길게
             } else if (sheetName === 'Visit') {
-                document.getElementById('tab-visit').classList.add('active');
                 termInput.placeholder = '방문 일정 (예: 2024-01-01)';
                 termLabel.textContent = '방문 일정';
                 descLabel.textContent = '방문 내용';
                 descInput.rows = 30; // 방문 내용도 길게
             } else if (sheetName === 'ItemDetail') {
-                document.getElementById('tab-itemdetail').classList.add('active');
                 termInput.placeholder = '물건 이름 (예: 냉장고)';
                 termLabel.textContent = '물건 이름';
                 descLabel.textContent = '세부 사항';
                 descInput.rows = 30; // 물건 세부 사항도 길게
             } else if (sheetName === 'Private') {
-                document.getElementById('tab-private').classList.add('active');
                 termInput.placeholder = '자료 제목 (예: 비밀번호)';
                 termLabel.textContent = '자료 제목';
                 descLabel.textContent = '자료 내용';
@@ -1066,15 +1105,24 @@
             // 입력 필드 초기화
             document.getElementById('term').value = '';
             document.getElementById('description').value = '';
-
-            // 렌더링은 위에서 이미 분기 처리되었으므로 중복 호출 제거
-            // (상단 if/else 블록에서 이미 처리됨)
         }
 
         // 인라인 수정 모드 토글
         function toggleInlineEdit(id) {
             const card = document.querySelector(`.card[data-id="${id}"]`);
             const isEditing = card.classList.contains('editing');
+
+            // 다른 카드가 이미 수정 중인지 확인 (자신이 수정 중이 아닐 때만 체크)
+            if (!isEditing) {
+                const otherEditingCard = document.querySelector('.card.editing');
+                if (otherEditingCard) {
+                    alert('이미 수정 중인 항목이 있습니다. 먼저 완료하거나 취소해주세요.');
+                    otherEditingCard.scrollIntoView({ behavior: 'smooth', block: 'center' }); // 수정 중인 곳으로 이동
+                    otherEditingCard.classList.add('highlight-pulse'); // 강조 효과 (CSS 필요하지만 없어도 무방)
+                    setTimeout(() => otherEditingCard.classList.remove('highlight-pulse'), 1000);
+                    return;
+                }
+            }
 
             if (isEditing) {
                 // 수정 취소 (캐시에서 원본 데이터 복원)
@@ -1086,14 +1134,13 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 강의정리/실전과정/개인자료/손님/방문/물건은 접기/펼치기 구조 복원
-                        const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
+                        const useCollapse = true; // 모든 시트 허용
                         const description = linkify(item.description);
                         const descriptionText = String(item.description || '');
                         const lines = descriptionText.split('\n');
-                        const isLongContent = lines.length > 1;
+                        const isLongContent = lines.length > 10; // 10줄 초과 시에만 버튼 표시
 
-                        if (isLecture && isLongContent) {
+                        if (useCollapse && isLongContent) {
                             // 부모 div 찾기
                             const parentDiv = descDiv.parentElement;
                             parentDiv.innerHTML = `
@@ -1210,7 +1257,7 @@
 
                 const actionsDiv = card.querySelector('.card-actions');
                 actionsDiv.innerHTML = `
-                    <button class="inline-cancel-btn" onclick="toggleInlineEdit('${id}')">취소</button>
+                    <button class="inline-cancel-btn" onclick="cancelInlineEdit('${id}')">취소</button>
                     <button class="inline-save-btn" onclick="saveInlineEdit('${id}')">저장</button>
                 `;
 
@@ -1247,86 +1294,37 @@
             }
         }
 
-        // 인라인 수정 저장
+        // 인라인 수정 저장 (안전한 동기화 방식)
+        // ?몃씪???섏젙 ???(?덉쟾???숆린??諛⑹떇 + POST)
         function saveInlineEdit(id) {
             const card = document.querySelector(`.card[data-id="${id}"]`);
 
-            // 제목은 textarea (인라인 수정 모드)
             const termTextarea = card.querySelector('.card-term .inline-textarea');
             const term = termTextarea ? termTextarea.value.trim() : '';
 
-            // 내용은 두 번째 textarea 찾기 (card-desc 클래스가 수정 모드에서 사라질 수 있으므로)
-            // 첫 번째는 제목, 두 번째는 내용
             const allTextareas = card.querySelectorAll('.inline-textarea');
             let description = '';
             if (allTextareas.length >= 2 && allTextareas[1]) {
                 description = allTextareas[1].value.trim();
             } else {
-                // 기존 방식 시도
                 const descInput = card.querySelector('.inline-textarea.card-desc-edit') || card.querySelector('.card-desc .inline-textarea');
                 description = descInput ? descInput.value.trim() : '';
             }
 
             if (!term || !description) {
-                alert('내용을 입력해주세요.');
+                alert('?댁슜???낅젰?댁＜?몄슂.');
                 return;
             }
 
-            // 즉시 캐시 데이터 업데이트 (속도 개선)
-            if (cachedData && cachedData[currentSheet]) {
-                const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
-                if (itemIndex !== -1) {
-                    cachedData[currentSheet][itemIndex].term = term;
-                    cachedData[currentSheet][itemIndex].description = description;
-                }
-            }
+            showLoading();
 
-            // 캐시에서 데이터 찾기
-            const item = cachedData[currentSheet].find(i => String(i.id) === String(id));
-            if (!item) {
-                alert('데이터를 찾을 수 없습니다.');
-                return;
-            }
-
-            // 카드 전체를 다시 그리기 (가장 안전한 방법)
-            const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
-            const linkedDescription = linkify(description);
-            const descriptionText = String(description || '');
-            const lines = descriptionText.split('\n');
-            const isLongContent = lines.length > 1;
-
-            let descHtml = '';
-            if (isLecture && isLongContent) {
-                descHtml = `
-                    <div>
-                        <div class="card-desc collapsed" id="desc-${id}">${linkedDescription}</div>
-                        <button class="toggle-btn" onclick="toggleContent('${id}')">더보기 ▼</button>
-                    </div>
-                `;
-            } else {
-                descHtml = `<div class="card-desc">${linkedDescription}</div>`;
-            }
-
-            card.innerHTML = `
-                <input type="checkbox" class="chk-box" data-id="${id}">
-                <div class="card-content">
-                    <div class="card-term">${term}</div>
-                    ${descHtml}
-                </div>
-                <div class="card-actions">
-                    <button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>
-                </div>`;
-
-            card.classList.remove('editing');
-
-            // 백그라운드에서 서버 동기화
             const params = new URLSearchParams();
             params.append('action', 'update');
             params.append('id', id);
             params.append('term', term);
             params.append('description', description);
             params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
+            params.append('password', userPassword);
 
             fetch(API_URL, {
                 method: 'POST',
@@ -1334,12 +1332,21 @@
                 body: params
             })
                 .then(() => {
-                    // 서버 동기화 완료 (UI는 이미 업데이트됨)
+                    if (cachedData && cachedData[currentSheet]) {
+                        const itemIndex = cachedData[currentSheet].findIndex(item => String(item.id) === String(id));
+                        if (itemIndex !== -1) {
+                            cachedData[currentSheet][itemIndex].term = term;
+                            cachedData[currentSheet][itemIndex].description = description;
+                        }
+                    }
+                    renderCurrentSheet();
+                    hideLoading();
                 })
                 .catch(err => {
-                    console.error('오류:', err);
-                    alert('수정 중 오류가 발생했습니다.');
-                });     // 기존 상단 수정 함수는 제거하거나 호환성을 위해 유지 (여기서는 인라인 전용으로 전환하므로 미사용)
+                    console.error('?ㅻ쪟 諛쒖깮:', err);
+                    alert('?쒕쾭 ?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
+                    hideLoading();
+                });
         }
 
         function enterEditMode(id, term, description) {
@@ -1352,57 +1359,30 @@
             document.getElementById('description').value = '';
         }
 
-        // 데이터 저장 (새 데이터 등록 전용)
+        // 인라인 수정 취소 (데이터 복구)
+        function cancelInlineEdit(id) {
+            renderCurrentSheet();
+        }
+
+        // 데이터 등록 (안전한 동기화 방식)
+        // ?곗씠???깅줉 (?덉쟾???숆린??諛⑹떇 + ?먮룞 由щ줈??
         function saveData() {
-            console.log('saveData 호출됨, 현재 시트:', currentSheet);
             const term = document.getElementById('term').value.trim();
             const description = document.getElementById('description').value.trim();
 
             if (!term || !description) {
-                let typeName = '데이터';
-                if (currentSheet === 'Coding') typeName = '용어';
-                else if (currentSheet === 'Prompt') typeName = '프롬프트';
-                else if (currentSheet === 'URL') typeName = '참고 제목';
-                else if (currentSheet === 'Ideas') typeName = '아이디어 제목';
-                else if (currentSheet === 'WorkProcess') typeName = '실전 제목';
-                else if (currentSheet === 'Jungri') typeName = '강의 제목';
-                else if (currentSheet === 'Customer') typeName = '손님 제목';
-                else if (currentSheet === 'Visit') typeName = '방문 일정';
-                else if (currentSheet === 'ItemDetail') typeName = '물건 이름';
-                else if (currentSheet === 'Private') typeName = '자료 제목';
-
-                alert(`${typeName}와 내용을 모두 입력해주세요.`);
+                alert('?댁슜???낅젰?댁＜?몄슂.');
                 return;
             }
 
-            // 임시 ID 생성 (서버에서 실제 ID를 받을 때까지 사용)
-            const tempId = 'temp_' + Date.now();
+            showLoading();
 
-            // 즉시 UI에 추가 (속도 개선)
-            const newItem = {
-                id: tempId,
-                term: term,
-                description: description
-            };
-
-            // 캐시에 추가
-            if (cachedData && cachedData[currentSheet]) {
-                cachedData[currentSheet].unshift(newItem); // 최신 항목이 맨 위로 오도록 unshift 사용
-            }
-
-            // UI에 즉시 표시
-            addCardToUI(newItem);
-
-            // 입력 폼 초기화
-            cancelEdit();
-
-            // 모든 카테고리를 안전한 POST 방식으로 전송 (CORS 오류 방지)
             const params = new URLSearchParams();
             params.append('action', 'save');
             params.append('term', term);
             params.append('description', description);
             params.append('sheetName', currentSheet);
-            params.append('password', userPassword); // 🔒 비밀번호 전송
+            params.append('password', userPassword);
 
             fetch(API_URL, {
                 method: 'POST',
@@ -1410,19 +1390,27 @@
                 body: params
             })
                 .then(() => {
-                    // 서버 동기화 완료 (UI는 이미 업데이트됨)
-                    console.log('백그라운드 저장 완료');
+                    document.getElementById('term').value = '';
+                    document.getElementById('description').value = '';
+
+                    // ?덈궡 硫붿떆吏
+                    const msg = document.getElementById('loadingMessage');
+                    if (msg) {
+                        msg.innerHTML = '????꾨즺! 紐⑸줉 媛깆떊 以?..';
+                        msg.style.opacity = '1';
+                    }
+
+                    currentSort = 'newest';
+                    document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll(`[data-sort="newest"]`).forEach(btn => btn.classList.add('active'));
+                    fetchCurrentTabData();
                 })
                 .catch(err => {
-                    console.error('오류:', err);
-                    // 오류 시 임시 항목 제거
-                    const tempCard = document.querySelector(`.card[data-id="${tempId}"]`);
-                    if (tempCard) tempCard.remove();
-                    alert('저장 중 연결 오류가 발생했습니다. (데이터가 저장되지 않았을 수 있습니다)');
+                    console.error('?ㅻ쪟 諛쒖깮:', err);
+                    alert('?쒕쾭 ?듭떊 ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.');
+                    hideLoading();
                 });
         }
-
-        // 데이터 불러오기 (기존 호환성 유지 및 렌더링 호출)
         function loadData(sortType) {
             currentSort = sortType;
             if (cachedData) {
@@ -1510,7 +1498,7 @@
 
             // 정렬 적용
             if (currentSort === 'newest') {
-                data.sort((a, b) => b.id - a.id);
+                data.reverse();
             } else if (currentSort === 'alphabet') {
                 data.sort((a, b) => String(a.term).localeCompare(String(b.term), 'ko'));
             }
@@ -1520,16 +1508,16 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 강의정리/작업과정/개인자료/손님/방문/물건 카테고리이고 내용이 긴 경우 접기/펼치기 버튼 추가
-                const isLecture = ['Jungri', 'WorkProcess', 'Private', 'Customer', 'Visit', 'ItemDetail'].includes(currentSheet);
+                // 모든 시트에서 내용이 10줄을 넘어가면 접기/펼치기 버튼 추가
+                const useCollapse = true;
                 const description = linkify(item.description);
                 // description을 문자열로 변환 후 split 사용 (안전성 확보)
                 const descriptionText = String(item.description || '');
                 const lines = descriptionText.split('\n');
-                const isLongContent = lines.length > 1;
+                const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
 
                 let descHtml = '';
-                if (isLecture && isLongContent) {
+                if (useCollapse && isLongContent) {
                     descHtml = `
                         <div>
                             <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
@@ -1581,46 +1569,31 @@
                 return;
             }
 
-            // 정렬 모드가 'custom'(입력순)이 아니면 조용히 전환
-            if (currentSort !== 'custom') {
-                currentSort = 'custom';
-                // 정렬 버튼 UI만 업데이트 (화면 리스트는 그대로 유지하여 깜빡임 방지 & 연속 클릭 지원)
-                document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll(`[data-sort="custom"]`).forEach(btn => btn.classList.add('active'));
+            // 가나다순에서는 순서 변경 불가
+            if (currentSort === 'alphabet') {
+                alert('가나다순에서는 순서를 변경할 수 없습니다.');
+                return;
             }
 
             const id = checkboxes[0].dataset.id;
             const card = document.querySelector(`.card[data-id="${id}"]`);
             const container = document.getElementById('list-container');
-            const data = cachedData[currentSheet];
+            const data = cachedData[currentSheet]; // 엑셀 순서(입력순) 데이터
             const index = data.findIndex(item => String(item.id) === String(id));
 
             if (index === -1 || !card) return;
 
-            // 이동 가능 여부 체크
-            if (direction === 'top' && index === 0) return alert('이미 맨 위입니다.');
-            if (direction === 'bottom' && index === data.length - 1) return alert('이미 맨 아래입니다.');
-            if (direction === 'up' && index === 0) return alert('더 이상 올릴 수 없습니다.');
-            if (direction === 'down' && index === data.length - 1) return alert('더 이상 내릴 수 없습니다.');
+            // 1. 화면 기준 이동 가능 여부 체크
+            const allCards = Array.from(container.children);
+            const viewIndex = allCards.indexOf(card);
 
-            // 1. 배열 내 이동 (Logic)
-            const item = data.splice(index, 1)[0];
-            let targetIndex;
+            // direction은 화면 기준
+            if (direction === 'top' && viewIndex === 0) return alert('이미 맨 위입니다.');
+            if (direction === 'bottom' && viewIndex === allCards.length - 1) return alert('이미 맨 아래입니다.');
+            if (direction === 'up' && viewIndex === 0) return alert('더 이상 올릴 수 없습니다.');
+            if (direction === 'down' && viewIndex === allCards.length - 1) return alert('더 이상 내릴 수 없습니다.');
 
-            if (direction === 'top') {
-                targetIndex = 0;
-            } else if (direction === 'bottom') {
-                targetIndex = data.length; // 맨 끝 (splice 후 길이 = 마지막 인덱스 + 1)
-            } else if (direction === 'up') {
-                targetIndex = index - 1;
-            } else if (direction === 'down') {
-                // Down 버그 수정: 원래 위치 다음 칸으로 가야 함 (splice로 하나 줄었으므로 index 위치가 다음 칸임, 그 뒤로 가려면 index + 1)
-                targetIndex = index + 1;
-            }
-
-            data.splice(targetIndex, 0, item);
-
-            // 2. DOM 이동 (View) - 깜빡임 없이 즉시 이동
+            // 2. DOM 이동 (View) - 화면 기준 direction 그대로 사용하여 UI 즉시 반영
             if (direction === 'top') {
                 container.prepend(card);
             } else if (direction === 'bottom') {
@@ -1631,20 +1604,74 @@
                 }
             } else if (direction === 'down') {
                 if (card.nextElementSibling) {
-                    // nextSibling의 nextSibling 앞에 삽입하면 nextSibling 뒤에 삽입됨
                     container.insertBefore(card, card.nextElementSibling.nextElementSibling);
                 }
             }
 
-            // UI 전체 갱신(renderCurrentSheet) 제거 -> 깜빡임 방지
+            // 3. 로컬 데이터 조작 (안전한 방법: DOM 순서대로 재정렬)
+            // 인덱스 계산 오류를 방지하기 위해, 화면에 보이는 순서대로 데이터를 다시 맞춤 (중요!)
+            const newOrderIds = Array.from(container.children).map(c => c.dataset.id);
+            const dataMap = new Map(data.map(item => [String(item.id), item]));
 
-            // 3. 서버 동기화
-            fetch(`${API_URL}?action=reorder&id=${id}&direction=${direction}&sheetName=${currentSheet}`)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status !== 'success') {
-                        console.error(result.message);
-                    }
+            // 데이터 개수 무결성 체크 (중요!)
+            if (newOrderIds.length !== data.length) {
+                console.error('데이터 불일치 감지! 저장 중단');
+                alert('화면과 데이터의 개수가 일치하지 않습니다. 새로고침 후 다시 시도해주세요.');
+                return;
+            }
+
+            const newData = [];
+            // 화면 순서대로 데이터 재구성
+            newOrderIds.forEach(id => {
+                if (dataMap.has(String(id))) {
+                    newData.push(dataMap.get(String(id)));
+                }
+            });
+
+            // 원본 데이터가 '입력순'으로 저장되어야 하는데, 화면이 '최신순'이라면
+            // newData는 최신순(역순)으로 정렬되어 있을 것임.
+            // 따라서 서버 저장용(입력순)으로 되돌리려면 다시 reverse() 해줘야 함.
+            if (currentSort === 'newest') {
+                newData.reverse();
+            }
+
+            // 최종 데이터 교체
+            cachedData[currentSheet] = newData;
+
+            // 4. 서버 동기화 (기존 로직 활용)
+            // 서버/데이터(엑셀) 기준 이동 방향 결정
+            let serverDirection = direction;
+            if (currentSort === 'newest') {
+                // 화면이 역순이므로, 방향을 반대로 해석
+                if (direction === 'top') serverDirection = 'bottom';
+                else if (direction === 'bottom') serverDirection = 'top';
+                else if (direction === 'up') serverDirection = 'down';
+                else if (direction === 'down') serverDirection = 'up';
+            }
+
+            // 비밀번호 포함하여 전송
+            showLoading();
+
+            const params = new URLSearchParams();
+            params.append('action', 'reorder');
+            params.append('id', id);
+            params.append('direction', serverDirection);
+            params.append('sheetName', currentSheet);
+            params.append('password', userPassword);
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공으로 간주 (no-cors 응답 읽기 불가)
+                    hideLoading();
+                })
+                .catch(err => {
+                    console.error('순서 변경 서버 요청 실패:', err);
+                    // alert('서버와 통신 중 오류가 발생했습니다.'); // 사용자 요청으로 에러 창 제거
+                    hideLoading();
                 });
         }
 
@@ -1686,20 +1713,37 @@
                 cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
             }
 
-            // 백그라운드에서 서버 동기화
-            const url = `${API_URL}?action=delete&ids=${ids.join(',')}&sheetName=${currentSheet}&password=${encodeURIComponent(userPassword)}`;
+            // 백그라운드에서 서버 동기화 -> 안전한 동기화 방식(Blocking UI)으로 변경
+            // showLoading()을 사용하여 사용자 입력을 막음
+            showLoading();
 
-            fetch(url)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status !== 'success') {
-                        // 실패 시 경고
-                        alert('삭제 중 오류가 발생했습니다. (새로고침이 필요할 수 있습니다)');
+            // API가 다중 삭제를 지원하므로(ids 파라미터), 한 번에 요청
+            const params = new URLSearchParams();
+            params.append('action', 'delete');
+            params.append('ids', ids.join(','));
+            params.append('sheetName', currentSheet);
+            params.append('password', userPassword);
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공 시 UI 및 로컬 데이터 삭제 (no-cors 응답 확인 불가하므로 성공 간주)
+                    ids.forEach(id => {
+                        const card = document.querySelector(`.card[data-id="${id}"]`);
+                        if (card) card.remove();
+                    });
+
+                    if (cachedData && cachedData[currentSheet]) {
+                        cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
                     }
+                    hideLoading();
                 })
                 .catch(err => {
                     console.error('삭제 오류:', err);
-                    alert('삭제 요청 중 오류가 발생했습니다.');
+                    hideLoading();
                 });   // 선택 이동
         }
         function moveSelected() {
@@ -1762,46 +1806,55 @@
             modal.classList.remove('active');
         }
 
-        // 실제 이동 실행
+        // 실제 이동 실행 (안전한 동기화 방식)
         function executeMoveToCategory(targetSheet) {
             closeMoveModal();
 
             const checkboxes = window.selectedCheckboxes;
             const ids = Array.from(checkboxes).map(cb => cb.dataset.id);
 
-            // 즉시 UI에서 제거 (속도 개선)
-            ids.forEach(id => {
-                const card = document.querySelector(`.card[data-id="${id}"]`);
-                if (card) card.remove();
-            });
-
-            // 캐시된 데이터 업데이트
+            // 이동할 대상 캐시 데이터 미리 확보 (성공 시 사용)
+            let movedItems = [];
             if (cachedData && cachedData[currentSheet]) {
-                const movedItems = cachedData[currentSheet].filter(item => ids.includes(String(item.id)));
-                cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
-
-                // 대상 시트 캐시 초기화 (없으면 빈 배열로 생성)
-                if (!cachedData[targetSheet]) {
-                    cachedData[targetSheet] = [];
-                }
-
-                // 대상 시트에 추가
-                cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
+                movedItems = cachedData[currentSheet].filter(item => ids.includes(String(item.id)));
             }
 
-            // 백그라운드에서 서버 동기화
-            const url = `${API_URL}?action=move&ids=${ids.join(',')}&sheetName=${currentSheet}&targetSheet=${targetSheet}&password=${encodeURIComponent(userPassword)}`;
+            showLoading(); // 이동 중...
 
-            fetch(url)
-                .then(res => res.json())
-                .then(result => {
-                    if (result.status !== 'success') {
-                        alert('이동 중 오류가 발생했습니다. (새로고침이 필요할 수 있습니다)');
+            const params = new URLSearchParams();
+            params.append('action', 'move');
+            params.append('ids', ids.join(','));
+            params.append('sheetName', currentSheet);
+            params.append('targetSheet', targetSheet);
+            params.append('password', userPassword);
+
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: params
+            })
+                .then(() => {
+                    // 성공 시 UI 제거 및 캐시 이동
+                    ids.forEach(id => {
+                        const card = document.querySelector(`.card[data-id="${id}"]`);
+                        if (card) card.remove();
+                    });
+
+                    // 현재 시트에서 데이터 제거
+                    if (cachedData && cachedData[currentSheet]) {
+                        cachedData[currentSheet] = cachedData[currentSheet].filter(item => !ids.includes(String(item.id)));
                     }
+
+                    // 타겟 시트 캐시가 있다면 추가 (없으면 나중에 로드할 때 받아옴)
+                    if (cachedData[targetSheet]) {
+                        cachedData[targetSheet] = [...movedItems, ...cachedData[targetSheet]];
+                    }
+
+                    hideLoading();
                 })
                 .catch(err => {
                     console.error('이동 오류:', err);
-                    alert('이동 요청 중 오류가 발생했습니다.');
+                    hideLoading();
                 });
         }
     </script>
