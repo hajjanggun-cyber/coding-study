@@ -1,4 +1,4 @@
-// 구글 Apps Script 코드 (개선 버전)
+// 구글 Apps Script 코드 (참고용)
 // 이 코드를 구글 스프레드시트의 Apps Script 편집기에 붙여넣으세요
 
 // 🔒 보안 설정: 이 비밀번호를 원하는 대로 변경하세요!
@@ -115,17 +115,18 @@ function loadData(sortType, sheetName) {
   return createJsonResponse(result);
 }
 
-// ✅ 개선: UUID 사용으로 ID 충돌 방지
 function saveData(term, description, sheetName) {
   try {
     const sheet = getSheet(sheetName);
-    // UUID 대신 타임스탬프 기반 ID 생성 (더 간단하고 안정적)
-    const newId = new Date().getTime();
+    const lastRow = sheet.getLastRow();
+    let newId = 1;
+    if (lastRow > 1) {
+      const lastId = sheet.getRange(lastRow, 1).getValue();
+      newId = (!isNaN(lastId) && lastId !== "") ? Number(lastId) + 1 : lastRow;
+    }
     sheet.appendRow([newId, term, description]);
-    return createJsonResponse({ status: 'success', id: newId });
-  } catch (error) { 
-    return createJsonResponse({ status: 'error', message: error.toString() }); 
-  }
+    return createJsonResponse({ status: 'success' });
+  } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
 }
 
 function updateData(id, term, description, sheetName) {
@@ -156,7 +157,6 @@ function deleteData(ids, sheetName) {
   } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
 }
 
-// ✅ 개선: 이동 시 ID 유지 (새 ID 생성하지 않음)
 function moveData(ids, sourceSheetName, targetSheetName) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -167,31 +167,23 @@ function moveData(ids, sourceSheetName, targetSheetName) {
 
     const rowsToMove = [];
     for (let i = 1; i < sourceData.length; i++) {
-      if (idList.includes(String(sourceData[i][0]).trim())) { 
-        rowsToMove.push(sourceData[i]); 
-      }
+      if (idList.includes(String(sourceData[i][0]).trim())) { rowsToMove.push(sourceData[i]); }
     }
 
-    // ✅ 핵심 변경: 기존 ID를 그대로 유지
-    rowsToMove.forEach((row) => {
-      targetSheet.appendRow([row[0], row[1], row[2]]);  // ID 그대로 사용
+    let lastId = 0;
+    const targetLastRow = targetSheet.getLastRow();
+    if (targetLastRow > 1) { lastId = Number(targetSheet.getRange(targetLastRow, 1).getValue()); }
+
+    rowsToMove.forEach((row, index) => {
+      const newId = (isNaN(lastId) ? 0 : lastId) + index + 1;
+      targetSheet.appendRow([newId, row[1], row[2]]);
     });
 
-    // 원본 시트에서 삭제
     for (let i = sourceData.length - 1; i >= 1; i--) {
-      if (idList.includes(String(sourceData[i][0]).trim())) { 
-        sourceSheet.deleteRow(i + 1); 
-      }
+      if (idList.includes(String(sourceData[i][0]).trim())) { sourceSheet.deleteRow(i + 1); }
     }
-    
-    return createJsonResponse({ 
-      status: 'success', 
-      message: `${rowsToMove.length}개 항목이 이동되었습니다.`,
-      movedIds: idList  // 이동된 ID 목록 반환
-    });
-  } catch (error) { 
-    return createJsonResponse({ status: 'error', message: error.toString() }); 
-  }
+    return createJsonResponse({ status: 'success', message: `${rowsToMove.length}개 항목이 이동되었습니다.` });
+  } catch (error) { return createJsonResponse({ status: 'error', message: error.toString() }); }
 }
 
 function reorderData(id, direction, sheetName) {
