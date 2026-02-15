@@ -2,7 +2,7 @@
 // 이 코드를 구글 스프레드시트의 Apps Script 편집기에 붙여넣으세요
 
 // 🔒 보안 설정: 이 비밀번호를 원하는 대로 변경하세요!
-const APP_PASSWORD = "1234";
+const APP_PASSWORD = "0428";
 
 function doGet(e) {
   // 비밀번호 검증
@@ -123,8 +123,8 @@ function saveData(term, description, sheetName) {
     const newId = new Date().getTime();
     sheet.appendRow([newId, term, description]);
     return createJsonResponse({ status: 'success', id: newId });
-  } catch (error) { 
-    return createJsonResponse({ status: 'error', message: error.toString() }); 
+  } catch (error) {
+    return createJsonResponse({ status: 'error', message: error.toString() });
   }
 }
 
@@ -167,8 +167,8 @@ function moveData(ids, sourceSheetName, targetSheetName) {
 
     const rowsToMove = [];
     for (let i = 1; i < sourceData.length; i++) {
-      if (idList.includes(String(sourceData[i][0]).trim())) { 
-        rowsToMove.push(sourceData[i]); 
+      if (idList.includes(String(sourceData[i][0]).trim())) {
+        rowsToMove.push(sourceData[i]);
       }
     }
 
@@ -179,18 +179,18 @@ function moveData(ids, sourceSheetName, targetSheetName) {
 
     // 원본 시트에서 삭제
     for (let i = sourceData.length - 1; i >= 1; i--) {
-      if (idList.includes(String(sourceData[i][0]).trim())) { 
-        sourceSheet.deleteRow(i + 1); 
+      if (idList.includes(String(sourceData[i][0]).trim())) {
+        sourceSheet.deleteRow(i + 1);
       }
     }
-    
-    return createJsonResponse({ 
-      status: 'success', 
+
+    return createJsonResponse({
+      status: 'success',
       message: `${rowsToMove.length}개 항목이 이동되었습니다.`,
       movedIds: idList  // 이동된 ID 목록 반환
     });
-  } catch (error) { 
-    return createJsonResponse({ status: 'error', message: error.toString() }); 
+  } catch (error) {
+    return createJsonResponse({ status: 'error', message: error.toString() });
   }
 }
 
