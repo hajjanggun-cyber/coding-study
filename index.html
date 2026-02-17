@@ -1151,22 +1151,9 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        const useCollapse = true; // 모든 시트 허용
+                        // 접기/펼치기 기능 제거 - 모든 내용 전체 표시
                         const description = linkify(item.description);
-                        const descriptionText = String(item.description || '');
-                        const lines = descriptionText.split('\n');
-                        const isLongContent = lines.length > 10; // 10줄 초과 시에만 버튼 표시
-
-                        if (useCollapse && isLongContent) {
-                            // 부모 div 찾기
-                            const parentDiv = descDiv.parentElement;
-                            parentDiv.innerHTML = `
-                                <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
-                                <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
-                            `;
-                        } else {
-                            descDiv.innerHTML = description;
-                        }
+                        descDiv.innerHTML = description;
 
                         const actionsDiv = card.querySelector('.card-actions');
                         actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
@@ -1549,25 +1536,9 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 모든 시트에서 내용이 10줄을 넘어가면 접기/펼치기 버튼 추가
-                const useCollapse = true;
+                // 접기/펼치기 기능 제거 - 모든 내용 전체 표시
                 const description = linkify(item.description);
-                // description을 문자열로 변환 후 split 사용 (안전성 확보)
-                const descriptionText = String(item.description || '');
-                const lines = descriptionText.split('\n');
-                const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
-
-                let descHtml = '';
-                if (useCollapse && isLongContent) {
-                    descHtml = `
-                        <div>
-                            <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
-                            <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
-                        </div>
-                    `;
-                } else {
-                    descHtml = `<div class="card-desc">${description}</div>`;
-                }
+                const descHtml = `<div class="card-desc">${description}</div>`;
 
                 card.innerHTML = `
                     <input type="checkbox" class="chk-box" data-id="${item.id}">
