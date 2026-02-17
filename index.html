@@ -1091,32 +1091,32 @@
                 termInput.placeholder = '강의 제목 (예: React 기초 강의)';
                 termLabel.textContent = '강의 제목';
                 descLabel.textContent = '강의 정리';
-                descInput.rows = 30; // 강의 정리도 길게
+                descInput.rows = 15; // 강의 정리
             } else if (sheetName === 'WorkProcess') {
                 termInput.placeholder = '실전 제목 (예: 프로젝트 진행 과정)';
                 termLabel.textContent = '실전 제목';
                 descLabel.textContent = '실전 과정';
-                descInput.rows = 30; // 실전 과정도 길게
+                descInput.rows = 15; // 실전 과정
             } else if (sheetName === 'Customer') {
                 termInput.placeholder = '손님 제목 (예: 홍길동)';
                 termLabel.textContent = '손님 제목';
                 descLabel.textContent = '손님 내용';
-                descInput.rows = 30; // 손님 내용도 길게
+                descInput.rows = 15; // 손님 내용
             } else if (sheetName === 'Visit') {
                 termInput.placeholder = '방문 일정 (예: 2024-01-01)';
                 termLabel.textContent = '방문 일정';
                 descLabel.textContent = '방문 내용';
-                descInput.rows = 30; // 방문 내용도 길게
+                descInput.rows = 15; // 방문 내용
             } else if (sheetName === 'ItemDetail') {
                 termInput.placeholder = '물건 이름 (예: 냉장고)';
                 termLabel.textContent = '물건 이름';
                 descLabel.textContent = '세부 사항';
-                descInput.rows = 30; // 물건 세부 사항도 길게
+                descInput.rows = 15; // 물건 세부 사항
             } else if (sheetName === 'Private') {
                 termInput.placeholder = '자료 제목 (예: 비밀번호)';
                 termLabel.textContent = '자료 제목';
                 descLabel.textContent = '자료 내용';
-                descInput.rows = 30; // 개인 자료도 길게
+                descInput.rows = 15; // 개인 자료
             }
 
             // 입력 필드 초기화
@@ -1151,9 +1151,22 @@
                         const descDiv = card.querySelector('.card-desc');
                         termDiv.textContent = item.term;
 
-                        // 접기/펼치기 기능 제거 - 모든 내용 전체 표시
+                        const useCollapse = true; // 모든 시트 허용
                         const description = linkify(item.description);
-                        descDiv.innerHTML = description;
+                        const descriptionText = String(item.description || '');
+                        const lines = descriptionText.split('\n');
+                        const isLongContent = lines.length > 10; // 10줄 초과 시에만 버튼 표시
+
+                        if (useCollapse && isLongContent) {
+                            // 부모 div 찾기
+                            const parentDiv = descDiv.parentElement;
+                            parentDiv.innerHTML = `
+                                <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                                <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                            `;
+                        } else {
+                            descDiv.innerHTML = description;
+                        }
 
                         const actionsDiv = card.querySelector('.card-actions');
                         actionsDiv.innerHTML = `<button class="edit-btn" onclick="toggleInlineEdit('${id}')">수정</button>`;
@@ -1536,9 +1549,25 @@
                 card.className = 'card';
                 card.setAttribute('data-id', item.id);
 
-                // 접기/펼치기 기능 제거 - 모든 내용 전체 표시
+                // 모든 시트에서 내용이 10줄을 넘어가면 접기/펼치기 버튼 추가
+                const useCollapse = true;
                 const description = linkify(item.description);
-                const descHtml = `<div class="card-desc">${description}</div>`;
+                // description을 문자열로 변환 후 split 사용 (안전성 확보)
+                const descriptionText = String(item.description || '');
+                const lines = descriptionText.split('\n');
+                const isLongContent = lines.length > 10; // 10줄 초과 시 버튼 생성
+
+                let descHtml = '';
+                if (useCollapse && isLongContent) {
+                    descHtml = `
+                        <div>
+                            <div class="card-desc collapsed" id="desc-${item.id}">${description}</div>
+                            <button class="toggle-btn" onclick="toggleContent('${item.id}')">더보기 ▼</button>
+                        </div>
+                    `;
+                } else {
+                    descHtml = `<div class="card-desc">${description}</div>`;
+                }
 
                 card.innerHTML = `
                     <input type="checkbox" class="chk-box" data-id="${item.id}">
